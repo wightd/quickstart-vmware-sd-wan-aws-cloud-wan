@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CloudFormation Template to build a VMware SD-WAN project in AWS. (qs-1t0tbties)
+Metadata:
+  LICENSE: Apache License, Version 2.0
+Parameters:
+Resources:
+Outputs:
+  Postdeployment:
+    Description: See the deployment guide for post-deployment steps.
+    Value: https://aws-quickstart.github.io/quickstart-vmware-sd-wan/#_postdeployment_steps
