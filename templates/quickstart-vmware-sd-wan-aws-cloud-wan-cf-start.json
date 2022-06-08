@@ -1,0 +1,167 @@
+{
+ "AWSTemplateFormatVersion": "2010-09-09",
+ "Mappings" : {
+    "RegionMap" : {
+      "us-east-2" : {"322" : "ami-0667712c0cc7ccbd6", "331" : "ami-00009cd364607db91", "431" : "ami-0d347afd2c43a4355"},
+      "us-east-1" : {"322" : "ami-02d53ee6e90715a83", "331" : "ami-0a9373a4b23e149b7", "431" : "ami-00adba00f6e2d6c59"},
+      "us-west-1" : {"322" : "ami-056b3e0e020d5733c", "331" : "ami-0eae7918e6c5e03e3", "431" : "ami-0e5c616175a857250"},
+      "us-west-2" : {"322" : "ami-04d3e79314781094f", "331" : "ami-0e2374b672d5149c3", "431" : "ami-05159b4727b41a1f7"},
+      "ap-south-1" : {"322" : "ami-0c74ea9d8c66c1a87", "331" : "ami-08df28503c779c65b", "431" : "ami-09326df5874458c3b"},
+      "ap-east-1" : {"331" : "ami-08275d79", "431" : "ami-0859bda20c445194c"},
+      "ap-northeast-2" : {"322" : "ami-0f7514d14209b90ff", "331" : "ami-001c1e312fec38b26", "431" : "ami-004726b73d452ccb6"},
+      "ap-southeast-1" : {"322" : "ami-0d0e6c10cf0ffd3a9", "331" : "ami-00b0ac7201061dce6", "431" : "ami-0c7c7cdb1af792c19"},
+      "ap-southeast-2" : {"322" : "ami-09672eaa998504af3", "331" : "ami-0b7196fd587231352", "431" : "ami-05258b9a8201bff4d"},
+      "ap-northeast-1" : {"322" : "ami-05eb836595f666ab3", "331" : "ami-02028fdfda2bedef3", "431" : "ami-05f8ba84f8686021a"},
+      "ca-central-1" : {"322" : "ami-0cb42e3a9a6adaf09", "331" : "ami-03a3ed427dd6af221", "431" : "ami-027a0254629bb2504"},
+      "eu-central-1" : {"322" : "ami-0d2f8031303625653", "331" : "ami-0e3ef4a959a447466", "431" : "ami-01f51d344ac508479"},
+      "eu-west-1" : {"322" : "ami-0967d4240a3fb5742", "331" : "ami-0f5a1ddf49df24d29", "431" : "ami-0977bf0f1ccaeb52f"},
+      "eu-west-2" : {"322" : "ami-0e9836eb5505034b6", "331" : "ami-0910c04a99eda46f3", "431" : "ami-0119faf2bb52c8b98"},
+      "eu-west-3" : {"322" : "ami-055c7e693f0504309", "331" : "ami-00bb1d7d48dd45aac", "431" : "ami-0371f223377a46199"},
+      "eu-north-1" : {"322" : "ami-1aed6564", "331" : "ami-ba9c16c4", "431" : "ami-0814fa9946580e4ad"},
+      "sa-east-1" : {"322" : "ami-092fa003ace20ca2b", "331" : "ami-03476bb22664d682d", "431" : "ami-033519f92f70df801"},
+      "us-gov-east-1" : {"322" : "ami-9b31d0ea", "331" : "ami-b87191c9"},
+      "us-gov-west-1" : {"322" : "ami-3b11605a", "331" : "ami-f3d08492"}
+    }
+  },
+ "Parameters": {
+   "ResourcePrefix" : {
+     "Description" : "Prefix used for naming all resources created by this template",
+     "Type" : "String",
+     "Default" : "VMware-SDWAN-CloudWAN-Quickstart"
+    },
+   "VMwareReleaseVersion": {
+      "Description": "SD-WAN Release Version",
+      "Type": "String",
+      "Default": "431",
+      "AllowedValues": ["322", "331", "431"],
+      "ConstraintDescription": "Must be one of the following: 3.2.2, 3.3.1, or 4.3.1"
+    },
+    "VMwareEC2InstanceType": {
+      "Description": "Throughput and number of NICs dictate instance type",
+      "Type": "String",
+      "Default": "c5.large",
+      "AllowedValues": [
+        "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge",
+        "c5.large", "c5.xlarge", "c5.2xlarge", "c5.4xlarge"
+      ]
+    },
+   "NumberOfEdgesToDeployAcrossAZs" : {
+     "Description" : "How many edges will be deployed across availability zones, max 3 if region supports it",
+     "Type" : "String",
+     "Default" : "2",
+     "AllowedValues": ["1", "2", "3"]
+   },
+   "VCO" : {
+     "Description" : "Orchestrator IP address or hostname (fqdn)",
+     "Type" : "String",
+     "Default" : "vco58-usvi1.velocloud.net"
+   },
+   "VcoUsername" : {
+     "Description" : "Username for Enterprise account",
+     "Type" : "String",
+     "Default" : "cloudwan@vmware.com"
+   },
+   "VcoPassword" : {
+     "Description" : "Password for Enterprise account",
+     "NoEcho" : "true",
+     "Type" : "String",
+     "Default" : "VMware1!",
+     "MinLength" : "5",
+     "MaxLength" : "20"
+   },
+   "IgnoreCertificateValidation" : {
+     "Description" : "Set to true if using public IP or self signed certificate on the VCO",
+     "Type" : "String",
+     "Default" : "false",
+     "AllowedValues" : ["true", "false"]
+   },
+   "VcoProfileName" : {
+     "Description" : "Profile name to be used to deploy SD-WAN (!!! NOTE: must match what is already configure on VCO !!!)",
+     "Type" : "String",
+     "Default" : "Quick Start Profile"
+    },
+   "NumberOfSegments" : {
+     "Description" : "How many segments need to be deployed, max 8",
+     "Type" : "String",
+     "Default" : "2",
+     "AllowedValues": ["1", "2", "3", "4", "5", "6", "7", "8"]
+    },
+   "PolicyDocumentLocation" : {
+     "Description" : "S3 URL to policy document for segment mappings ",
+     "Type" : "String",
+     "Default" : "https://s3"
+    },
+   "KeyPairName" : {
+     "Description" : "Public key name for resource deployments",
+     "Type" : "AWS::EC2::KeyPair::KeyName",
+     "Default" : "WIGHT_KEY"
+   },
+   "S3BucketName" : {
+     "Description" : "S3 Bucket used to store json templates and lambda zip files",
+     "Type" : "String",
+     "Default" : "quickstart-vmware-sd-wan-aws-cloud-wan"
+   },
+   "LambdaPackageName" : {
+     "Description" : "The name of the lambda package zip file",
+     "Type" : "String",
+     "Default" : "quickstart-vmware-sd-wan-aws-cloud-wan-lambda-function.zip"
+   },
+   "LambdaExecutionRole" : {
+     "Description" : "Identity and Access Management (IAM) used to authorize Lambda execution",
+     "NoEcho" : "true",
+     "Type" : "String",
+     "Default" : "arn:aws:iam::356563524063:role/Wight_Lambda"
+   },
+   "TransitVpcCidrBlock" : {
+     "Description" : "CIDR block for the TransitVPC",
+     "Type" : "String",
+     "Default" : "10.100.0.0/16"
+    },
+   "VpcAttachments" : {
+     "Description" : "Which VPCs to attach to Global Network",
+     "Type" : "String",
+     "Default" : "DummyVPC"
+    }
+  },
+ "Resources": {
+    "BuildQuickStart": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Role": {"Ref": "LambdaExecutionRole"},
+        "Code": {
+          "S3Bucket": {"Ref": "S3BucketName"},
+          "S3Key": {"Ref": "LambdaPackageName"}
+        },
+        "Environment": {
+          "Variables": {
+            "projectName": {"Ref": "ResourcePrefix"},
+            "VCO": {"Ref": "VCO"},
+            "vcoUsername": {"Ref": "VcoUsername"},
+            "vcoPassword": {"Ref": "VcoPassword"},
+            "profileName": {"Ref": "VcoProfileName"},
+            "edgeCount": {"Ref": "NumberOfEdgesToDeployAcrossAZs"},
+            "s3BucketName": {"Ref": "S3BucketName"},
+            "ignoreCertError": {"Ref": "IgnoreCertificateValidation"},
+            "keyPairName": {"Ref": "KeyPairName"},
+            "vpcCIDR": {"Ref": "TransitVpcCidrBlock"}
+          }
+        },
+        "Handler": "lambda_function.lambda_handler",
+        "Runtime": "python3.8",
+        "Timeout": 900,
+        "TracingConfig": {
+          "Mode": "Active"
+        }
+      }
+    },
+    "ExecuteQuickStart": {
+      "Type": "Custom::ExecuteLambdaFunction",
+      "DependsOn": [ "BuildQuickStart" ],
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": ["",["arn:aws:lambda:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":function:", {"Ref": "BuildQuickStart"}]]}
+      }
+    }
+ },
+ "Description": "quickstart-vmware-sd-wan-aws-cloud-wan-cf-start.json"
+}
