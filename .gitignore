@@ -9,6 +9,11 @@ docs/
 index.html
 prod_example.html
 
+# Python
+.python-version
+venv/
+env/
+
 # macOS
 .DS_Store
 
