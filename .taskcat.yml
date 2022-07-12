@@ -1,7 +1,7 @@
 project:
   name: quickstart-vmware-sd-wan
   owner: quickstart-eng@amazon.com
-  template: templates/vmware-sd-wan.template.yaml
+  template: templates/sd-wan-entrypoint-all-new.template.json
   s3_regional_buckets: true
   package_lambda: true
   lambda_source_path: functions/source
