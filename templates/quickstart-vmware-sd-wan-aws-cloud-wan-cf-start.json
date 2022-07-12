@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "quickstart-vmware-sd-wan-aws-cloud-wan-cf-start.json",
+  "Description": "(qs-1t6r10n3a)",
   "Metadata": {
     "AWS::CloudFormation::Interface": {
       "ParameterGroups": [

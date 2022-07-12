@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "quickstart-vmware-sd-wan-aws-cloud-wan-cf-brownfield.json",
+  "Description": "(qs-1t0tbties)",
   "Parameters": {
     "SoftwareVersion": {
       "Description": "VeloCloud Virtual Edge Software Version",
