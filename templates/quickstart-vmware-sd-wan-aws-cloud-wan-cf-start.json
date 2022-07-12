@@ -1,0 +1,241 @@
+{
+ "AWSTemplateFormatVersion": "2010-09-09",
+  "Metadata" : {
+  "AWS::CloudFormation::Interface" : {
+    "ParameterGroups" : [
+      {
+        "Label" : { "default" : "VCO Configuration" },
+        "Parameters" : [ "VCO", "VcoUsername", "VcoPassword", "IgnoreCertificateValidation", "VMwareReleaseVersion",
+          "VMwareEC2InstanceType", "VcoProfileName", "SecondSegmentName", "TransitVpcCidrBlock"]
+      },
+      {
+        "Label" : { "default":"AWS CloudWAN Configuration" },
+        "Parameters" : [ "ResourcePrefix", "PolicyJson", "CloudFormationGreenfieldUrl", "CloudFormationBrownfieldUrl",
+          "S3BucketName", "LambdaPackageName", "SubnetToAttachToSegment1", "SubnetToAttachToSegment2","KeyPairName"]
+      }
+    ],
+    "ParameterLabels" : {
+      "VCO" : { "default" : "Which VCO should this be deployed to?" }
+    }
+  }
+},
+ "Parameters": {
+   "ResourcePrefix" : {
+     "Description" : "Prefix used for naming all resources created by this template",
+     "Type" : "String",
+     "Default" : "VMware-SDWAN-CloudWAN-Quickstart"
+    },
+   "VMwareReleaseVersion": {
+      "Description": "SD-WAN Release Version",
+      "Type": "String",
+      "Default": "431",
+      "AllowedValues": ["322", "331", "431"],
+      "ConstraintDescription": "Must be one of the following: 3.2.2, 3.3.1, or 4.3.1"
+    },
+    "VMwareEC2InstanceType": {
+      "Description": "Throughput and number of NICs dictate instance type",
+      "Type": "String",
+      "Default": "c5.large",
+      "AllowedValues": [
+        "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge",
+        "c5.large", "c5.xlarge", "c5.2xlarge", "c5.4xlarge"
+      ]
+    },
+   "VCO" : {
+     "Description" : "Orchestrator IP address or hostname (fqdn)",
+     "Type" : "String",
+     "Default" : "vco58-usvi1.velocloud.net"
+   },
+   "VcoUsername" : {
+     "Description" : "Username for Enterprise account",
+     "Type" : "String",
+     "Default" : "cloudwan@vmware.com"
+   },
+   "VcoPassword" : {
+     "Description" : "Password for Enterprise account",
+     "NoEcho" : "true",
+     "Type" : "String",
+     "Default" : "VMware1!",
+     "MinLength" : "5",
+     "MaxLength" : "20"
+   },
+   "IgnoreCertificateValidation" : {
+     "Description" : "Set to true if using public IP or self signed certificate on the VCO",
+     "Type" : "String",
+     "Default" : "false",
+     "AllowedValues" : ["true", "false"]
+   },
+   "VcoProfileName" : {
+     "Description" : "VCO Profile name to be used to deploy SD-WAN (NOTE: must match what is already configure on VCO)",
+     "Type" : "String",
+     "Default" : "AWS Transit Hub Profile"
+    },
+   "SecondSegmentName" : {
+     "Description" : "Second VCO segment name - existing or created (NOTE: must match what is already configure on VCO)",
+     "Type" : "String",
+     "Default" : "Development"
+    },
+   "PolicyJson" : {
+     "Description" : "Policy JSON for segment mappings",
+     "Type" : "String",
+     "Default" : "{ \"version\": \"2021.12\", \"core-network-configuration\": { \"vpn-ecmp-support\": false, \"asn-ranges\": [ \"64512-65534\" ], \"edge-locations\": [ { \"location\": \"us-west-1\" } ] }, \"segments\": [ { \"name\": \"Global\", \"description\": \"VMware SD-WAN Global segment\", \"require-attachment-acceptance\": false, \"isolate-attachments\": false }, { \"name\": \"Development\", \"description\": \"VMware SD-WAN Second segment\", \"require-attachment-acceptance\": false, \"isolate-attachments\": false } ], \"attachment-policies\": [ { \"rule-number\": 1, \"condition-logic\": \"and\", \"conditions\": [ { \"type\": \"tag-value\", \"key\": \"segment\", \"operator\": \"contains\", \"value\": \"Global\" } ], \"action\": { \"association-method\": \"constant\", \"segment\": \"Global\" } }, { \"rule-number\": 2, \"condition-logic\": \"and\", \"conditions\": [ { \"type\": \"tag-value\", \"key\": \"segment\", \"operator\": \"contains\", \"value\": \"Development\" } ], \"action\": { \"association-method\": \"constant\", \"segment\": \"Development\" } } ] }"
+    },
+   "KeyPairName" : {
+     "Description" : "Public key name for resource deployments",
+     "Type" : "AWS::EC2::KeyPair::KeyName",
+     "Default" : "WIGHT_KEY"
+   },
+   "S3BucketName" : {
+     "Description" : "S3 Bucket used to store json templates and lambda zip files",
+     "Type" : "String",
+     "Default" : "quickstart-vmware-sd-wan-aws-cloud-wan"
+   },
+   "CloudFormationGreenfieldUrl" : {
+     "Description" : "URL to CloudFormation Greenfield Template",
+     "Type" : "String",
+     "Default" : "https://quickstart-vmware-sd-wan-aws-cloud-wan.s3.us-west-1.amazonaws.com/quickstart-vmware-sd-wan-aws-cloud-wan-cf-greenfield.json"
+   },
+   "CloudFormationBrownfieldUrl" : {
+     "Description" : "URL to CloudFormation Brownfield Template",
+     "Type" : "String",
+     "Default" : "https://quickstart-vmware-sd-wan-aws-cloud-wan.s3.us-west-1.amazonaws.com/quickstart-vmware-sd-wan-aws-cloud-wan-cf-brownfield.json"
+   },
+   "LambdaPackageName" : {
+     "Description" : "The name of the lambda package zip file",
+     "Type" : "String",
+     "Default" : "quickstart-vmware-sd-wan-aws-cloud-wan-lambda-function.zip"
+   },
+   "TransitVpcCidrBlock" : {
+     "Description" : "CIDR block for the TransitVPC",
+     "Type" : "String",
+     "Default" : "10.100.0.0/16"
+    },
+   "SubnetToAttachToSegment1" : {
+     "Description" : "Specify subnet to be used for segment one (Global Segment)",
+     "Type" : "AWS::EC2::Subnet::Id"
+    },
+   "SubnetToAttachToSegment2" : {
+     "Description" : "Specify subnet to be used for segment two",
+     "Type" : "AWS::EC2::Subnet::Id"
+    }
+  },
+ "Resources": {
+    "BuildQuickStart": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [ "QuickstartRole" ],
+      "Properties": {
+        "Role": {"Fn::GetAtt" : ["QuickstartRole", "Arn"]},
+        "Code": {
+          "S3Bucket": {"Ref": "S3BucketName"},
+          "S3Key": {"Ref": "LambdaPackageName"}
+        },
+        "Environment": {
+          "Variables": {
+            "projectName": {"Ref": "ResourcePrefix"},
+            "VCO": {"Ref": "VCO"},
+            "vcoUsername": {"Ref": "VcoUsername"},
+            "vcoPassword": {"Ref": "VcoPassword"},
+            "profileName": {"Ref": "VcoProfileName"},
+            "segmentName": {"Ref": "SecondSegmentName"},
+            "s3BucketName": {"Ref": "S3BucketName"},
+            "gfCfUrl": {"Ref": "CloudFormationGreenfieldUrl"},
+            "bfCfUrl": {"Ref": "CloudFormationBrownfieldUrl"},
+            "policyJson": {"Ref": "PolicyJson"},
+            "ignoreCertError": {"Ref": "IgnoreCertificateValidation"},
+            "keyPairName": {"Ref": "KeyPairName"},
+            "regionalName": {"Fn::Join": ["",["arn:aws:ec2:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}]]},
+            "vpcCIDR": {"Ref": "TransitVpcCidrBlock"},
+            "segmentOneSubnet": {"Ref": "SubnetToAttachToSegment1"},
+            "segmentTwoSubnet": {"Ref": "SubnetToAttachToSegment2"}
+          }
+        },
+        "Handler": "lambda_function.lambda_handler",
+        "Runtime": "python3.8",
+        "Timeout": 900,
+        "TracingConfig": {
+          "Mode": "Active"
+        }
+      }
+    },
+    "ExecuteQuickStart": {
+      "Type": "Custom::ExecuteLambdaFunction",
+      "DependsOn": [ "BuildQuickStart" ],
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": ["",["arn:aws:lambda:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":function:", {"Ref": "BuildQuickStart"}]]}
+      }
+    },
+   "QuickstartRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [
+                                "lambda.amazonaws.com"
+                            ]
+                        },
+                        "Action": [
+                            "sts:AssumeRole"
+                        ]
+                    }
+                ]
+            },
+            "Path": "/",
+            "Policies": [
+                {
+                    "PolicyName": "QuickStart-VMware-SDWAN-Cloud-WAN-Policy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Action": [
+                                    "ec2:*",
+                                    "logs:*",
+                                    "iam:GetPolicyVersion",
+                                    "iam:ListAttachedRolePolicies",
+                                    "iam:ListRolePolicies",
+                                    "iam:GetRole",
+                                    "iam:GetPolicy",
+                                    "iam:ListRoles",
+                                    "iam:GetRolePolicy",
+                                    "iam:PassRole",
+                                    "cloudformation:CreateStack",
+                                    "cloudformation:DeleteStack",
+                                    "cloudformation:DescribeStacks",
+                                    "s3:PutObject",
+                                    "s3:GetObject",
+                                    "networkmanager:TagResource",
+                                    "networkmanager:CreateGlobalNetwork",
+                                    "networkmanager:DescribeGlobalNetworks",
+                                    "networkmanager:CreateCoreNetwork",
+                                    "networkmanager:GetCoreNetwork",
+                                    "networkmanager:CreateVpcAttachment",
+                                    "networkmanager:CreateSiteToSiteVpnAttachment"
+                                ],
+                                "Resource": "*"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+   },
+    "QuickstartInstanceProfile": {
+        "Type": "AWS::IAM::InstanceProfile",
+        "Properties": {
+            "Path": "/",
+            "Roles": [
+                {
+                    "Ref": "QuickstartRole"
+                }
+            ]
+        }
+    }
+ },
+ "Description": "quickstart-vmware-sd-wan-aws-cloud-wan-cf-start.json"
+}
