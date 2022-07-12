@@ -1,62 +1,62 @@
 {
-    "version": "2021.12",
-    "core-network-configuration": {
-        "vpn-ecmp-support": false,
-        "asn-ranges": [
-            "64512-65534"
-        ],
-        "edge-locations": [
-            {
-                "location": "us-west-1"
-            }
-        ]
-    },
-    "segments": [
-        {
-            "name": "Global",
-            "description": "VMware SD-WAN Production segment",
-            "require-attachment-acceptance": false,
-            "isolate-attachments": false
-        },
-        {
-            "name": "Development",
-            "description": "VMware SD-WAN Development segment",
-            "require-attachment-acceptance": false,
-            "isolate-attachments": false
-        }
+  "version": "2021.12",
+  "core-network-configuration": {
+    "vpn-ecmp-support": false,
+    "asn-ranges": [
+      "64512-65534"
     ],
-    "attachment-policies": [
-        {
-            "rule-number": 1,
-            "condition-logic": "and",
-            "conditions": [
-                {
-                    "type": "tag-value",
-                    "key": "segment",
-                    "operator": "contains",
-                    "value": "Global"
-                }
-            ],
-            "action": {
-                "association-method": "constant",
-                "segment": "Global"
-            }
-        },
-        {
-            "rule-number": 2,
-            "condition-logic": "and",
-            "conditions": [
-                {
-                    "type": "tag-value",
-                    "key": "segment",
-                    "operator": "contains",
-                    "value": "Development"
-                }
-            ],
-            "action": {
-                "association-method": "constant",
-                "segment": "Development"
-            }
-        }
+    "edge-locations": [
+      {
+        "location": "us-west-1"
+      }
     ]
+  },
+  "segments": [
+    {
+      "name": "Global",
+      "description": "VMware SD-WAN Production segment",
+      "require-attachment-acceptance": false,
+      "isolate-attachments": false
+    },
+    {
+      "name": "Development",
+      "description": "VMware SD-WAN Development segment",
+      "require-attachment-acceptance": false,
+      "isolate-attachments": false
+    }
+  ],
+  "attachment-policies": [
+    {
+      "rule-number": 1,
+      "condition-logic": "and",
+      "conditions": [
+        {
+          "type": "tag-value",
+          "key": "segment",
+          "operator": "contains",
+          "value": "Global"
+        }
+      ],
+      "action": {
+        "association-method": "constant",
+        "segment": "Global"
+      }
+    },
+    {
+      "rule-number": 2,
+      "condition-logic": "and",
+      "conditions": [
+        {
+          "type": "tag-value",
+          "key": "segment",
+          "operator": "contains",
+          "value": "Development"
+        }
+      ],
+      "action": {
+        "association-method": "constant",
+        "segment": "Development"
+      }
+    }
+  ]
 }
