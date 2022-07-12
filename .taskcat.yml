@@ -2,6 +2,9 @@ project:
   name: quickstart-vmware-sd-wan
   owner: quickstart-eng@amazon.com
   template: templates/vmware-sd-wan.template.yaml
+  package_lambda: true
+  lambda_source_path: functions/source
+  lambda_zip_path: functions/packages
   parameters:
   regions:
     - af-south-1
