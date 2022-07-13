@@ -1,0 +1,279 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: (qs-1t6r10n3a)
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VCO Configuration
+        Parameters:
+          - VCO
+          - VcoUsername
+          - VcoPassword
+          - IgnoreCertificateValidation
+          - VMwareReleaseVersion
+          - VMwareEC2InstanceType
+          - VcoProfileName
+          - SecondSegmentName
+          - TransitVpcCidrBlock
+      - Label:
+          default: AWS CloudWAN Configuration
+        Parameters:
+          - ResourcePrefix
+          - PolicyJson
+          - CloudFormationGreenfieldUrl
+          - CloudFormationBrownfieldUrl
+          - S3BucketName
+          - LambdaPackageName
+          - SubnetToAttachToSegment1
+          - SubnetToAttachToSegment2
+          - KeyPairName
+    ParameterLabels:
+      VCO:
+        default: Which VCO should this be deployed to?
+Parameters:
+  ResourcePrefix:
+    Type: String
+    Description: Prefix used for naming all resources created by this template
+    Default: VMware-SDWAN-CloudWAN-Quickstart
+  VMwareReleaseVersion:
+    Type: String
+    Description: SD-WAN Release Version
+    AllowedValues:
+      - '322'
+      - '331'
+      - '431'
+    Default: '431'
+    ConstraintDescription: 'Must be one of the following: 3.2.2, 3.3.1, or 4.3.1'
+  VMwareEC2InstanceType:
+    Type: String
+    Description: Throughput and number of NICs dictate instance type
+    AllowedValues:
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+    Default: c5.large
+  VCO:
+    Type: String
+    Description: Orchestrator IP address or hostname (fqdn)
+    Default: vco58-usvi1.velocloud.net
+  VcoUsername:
+    Type: String
+    Description: Username for Enterprise account
+    Default: cloudwan@vmware.com
+  VcoPassword:
+    Type: String
+    Description: Password for Enterprise account
+    NoEcho: true
+    Default: VMware1!
+    MinLength: 5
+    MaxLength: 20
+  IgnoreCertificateValidation:
+    Type: String
+    Description:
+      Set to true if using public IP or self signed certificate on the
+      VCO
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+  VcoProfileName:
+    Type: String
+    Description:
+      'VCO Profile name to be used to deploy SD-WAN (NOTE: must match what
+      is already configure on VCO)'
+    Default: AWS Transit Hub Profile
+  SecondSegmentName:
+    Type: String
+    Description:
+      'Second VCO segment name - existing or created (NOTE: must match
+      what is already configure on VCO)'
+    Default: Development
+  PolicyJson:
+    Description: Policy JSON for segment mappings
+    Type: String
+    Default: |
+      {
+        "version": "2021.12",
+        "core-network-configuration": {
+          "vpn-ecmp-support": false,
+          "asn-ranges": [
+            "64512-65534"
+          ],
+          "edge-locations": [
+            {
+              "location": "us-west-1"
+            }
+          ]
+        },
+        "segments": [
+          {
+            "name": "Global",
+            "description": "VMware SD-WAN Global segment",
+            "require-attachment-acceptance": false,
+            "isolate-attachments": false
+          },
+          {
+            "name": "Development",
+            "description": "VMware SD-WAN Second segment",
+            "require-attachment-acceptance": false,
+            "isolate-attachments": false
+          }
+        ],
+        "attachment-policies": [
+          {
+            "rule-number": 1,
+            "condition-logic": "and",
+            "conditions": [
+              {
+                "type": "tag-value",
+                "key": "segment",
+                "operator": "contains",
+                "value": "Global"
+              }
+            ],
+            "action": {
+              "association-method": "constant",
+              "segment": "Global"
+            }
+          },
+          {
+            "rule-number": 2,
+            "condition-logic": "and",
+            "conditions": [
+              {
+                "type": "tag-value",
+                "key": "segment",
+                "operator": "contains",
+                "value": "Development"
+              }
+            ],
+            "action": {
+              "association-method": "constant",
+              "segment": "Development"
+            }
+          }
+        ]
+      }
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public key name for resource deployments
+    Default: WIGHT_KEY
+  S3BucketName:
+    Type: String
+    Description: S3 Bucket used to store json templates and lambda zip files
+    Default: quickstart-vmware-sd-wan-aws-cloud-wan
+  CloudFormationGreenfieldUrl:
+    Type: String
+    Description: URL to CloudFormation Greenfield Template
+    Default: https://quickstart-vmware-sd-wan-aws-cloud-wan.s3.us-west-1.amazonaws.com/quickstart-vmware-sd-wan-aws-cloud-wan-cf-greenfield.json
+  CloudFormationBrownfieldUrl:
+    Type: String
+    Description: URL to CloudFormation Brownfield Template
+    Default: https://quickstart-vmware-sd-wan-aws-cloud-wan.s3.us-west-1.amazonaws.com/quickstart-vmware-sd-wan-aws-cloud-wan-cf-brownfield.json
+  LambdaPackageName:
+    Type: String
+    Description: The name of the lambda package zip file
+    Default: quickstart-vmware-sd-wan-aws-cloud-wan-lambda-function.zip
+  TransitVpcCidrBlock:
+    Type: String
+    Description: CIDR block for the TransitVPC
+    Default: 10.100.0.0/16
+  SubnetToAttachToSegment1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Specify subnet to be used for segment one (Global Segment)
+  SubnetToAttachToSegment2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Specify subnet to be used for segment two
+Resources:
+  BuildQuickStart:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - QuickstartRole
+    Properties:
+      Role: !GetAtt QuickstartRole.Arn
+      Code:
+        S3Bucket: !Ref S3BucketName
+        S3Key: !Ref LambdaPackageName
+      Environment:
+        Variables:
+          projectName: !Ref ResourcePrefix
+          VCO: !Ref VCO
+          vcoUsername: !Ref VcoUsername
+          vcoPassword: !Ref VcoPassword
+          profileName: !Ref VcoProfileName
+          segmentName: !Ref SecondSegmentName
+          s3BucketName: !Ref S3BucketName
+          gfCfUrl: !Ref CloudFormationGreenfieldUrl
+          bfCfUrl: !Ref CloudFormationBrownfieldUrl
+          policyJson: !Ref PolicyJson
+          ignoreCertError: !Ref IgnoreCertificateValidation
+          keyPairName: !Ref KeyPairName
+          regionalName: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}
+          vpcCIDR: !Ref TransitVpcCidrBlock
+          segmentOneSubnet: !Ref SubnetToAttachToSegment1
+          segmentTwoSubnet: !Ref SubnetToAttachToSegment2
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.8
+      Timeout: 900
+      TracingConfig:
+        Mode: Active
+  ExecuteQuickStart:
+    Type: Custom::ExecuteLambdaFunction
+    DependsOn:
+      - BuildQuickStart
+    Properties:
+      ServiceToken: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${BuildQuickStart}
+  QuickstartRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: QuickStart-VMware-SDWAN-Cloud-WAN-Policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:*
+                  - logs:*
+                  - iam:GetPolicyVersion
+                  - iam:ListAttachedRolePolicies
+                  - iam:ListRolePolicies
+                  - iam:GetRole
+                  - iam:GetPolicy
+                  - iam:ListRoles
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - s3:PutObject
+                  - s3:GetObject
+                  - networkmanager:TagResource
+                  - networkmanager:CreateGlobalNetwork
+                  - networkmanager:DescribeGlobalNetworks
+                  - networkmanager:CreateCoreNetwork
+                  - networkmanager:GetCoreNetwork
+                  - networkmanager:CreateVpcAttachment
+                  - networkmanager:CreateSiteToSiteVpnAttachment
+                Resource: '*'
+  QuickstartInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: !Ref QuickstartRole
