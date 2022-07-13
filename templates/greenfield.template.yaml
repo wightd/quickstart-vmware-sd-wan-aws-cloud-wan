@@ -338,8 +338,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${ResourcePrefix}-vEdge
-        - Key: Owner
-          Value: Generated with VeloClouds Greenfield CloudFormation Template
       UserData:
         Fn::Base64: !Sub |
           #cloud-config

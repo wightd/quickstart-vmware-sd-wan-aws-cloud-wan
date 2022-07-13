@@ -173,8 +173,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${ResourcePrefix}-vEdge
-        - Key: Owner
-          Value: Generated with VeloCloud Brownfield CloudFormation Template
       UserData:
         Fn::Base64: !Sub |
           #cloud-config
