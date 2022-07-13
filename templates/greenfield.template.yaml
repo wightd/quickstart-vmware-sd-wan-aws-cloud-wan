@@ -249,7 +249,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Sub ResourcePrefix-AZ3-Public-SN
+          Value: !Sub ${ResourcePrefix}-AZ3-Public-SN
   Az3PrivateSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ3
