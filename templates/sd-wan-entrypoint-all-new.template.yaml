@@ -18,7 +18,6 @@ Metadata:
           default: AWS CloudWAN Configuration
         Parameters:
           - ResourcePrefix
-          - PolicyJson
           - CloudFormationGreenfieldUrl
           - CloudFormationBrownfieldUrl
           - S3BucketName
@@ -70,72 +69,6 @@ Parameters:
       'Second VCO segment name - existing or created (NOTE: must match
       what is already configure on VCO)'
     Default: Development
-  PolicyJson:
-    Description: Policy JSON for segment mappings
-    Type: String
-    Default: |
-      {
-        "version": "2021.12",
-        "core-network-configuration": {
-          "vpn-ecmp-support": false,
-          "asn-ranges": [
-            "64512-65534"
-          ],
-          "edge-locations": [
-            {
-              "location": "us-west-1"
-            }
-          ]
-        },
-        "segments": [
-          {
-            "name": "Global",
-            "description": "VMware SD-WAN Global segment",
-            "require-attachment-acceptance": false,
-            "isolate-attachments": false
-          },
-          {
-            "name": "Development",
-            "description": "VMware SD-WAN Second segment",
-            "require-attachment-acceptance": false,
-            "isolate-attachments": false
-          }
-        ],
-        "attachment-policies": [
-          {
-            "rule-number": 1,
-            "condition-logic": "and",
-            "conditions": [
-              {
-                "type": "tag-value",
-                "key": "segment",
-                "operator": "contains",
-                "value": "Global"
-              }
-            ],
-            "action": {
-              "association-method": "constant",
-              "segment": "Global"
-            }
-          },
-          {
-            "rule-number": 2,
-            "condition-logic": "and",
-            "conditions": [
-              {
-                "type": "tag-value",
-                "key": "segment",
-                "operator": "contains",
-                "value": "Development"
-              }
-            ],
-            "action": {
-              "association-method": "constant",
-              "segment": "Development"
-            }
-          }
-        ]
-      }
   KeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public key name for resource deployments
@@ -187,7 +120,69 @@ Resources:
           s3BucketName: !Ref S3BucketName
           gfCfUrl: !Ref CloudFormationGreenfieldUrl
           bfCfUrl: !Ref CloudFormationBrownfieldUrl
-          policyJson: !Ref PolicyJson
+          policyJson: !Sub  |
+            {
+              "version": "2021.12",
+              "core-network-configuration": {
+                "vpn-ecmp-support": false,
+                "asn-ranges": [
+                  "64512-65534"
+                ],
+                "edge-locations": [
+                  {
+                    "location": "${AWS::Region}"
+                  }
+                ]
+              },
+              "segments": [
+                {
+                  "name": "Global",
+                  "description": "VMware SD-WAN Global segment",
+                  "require-attachment-acceptance": false,
+                  "isolate-attachments": false
+                },
+                {
+                  "name": "${SecondSegmentName}",
+                  "description": "VMware SD-WAN Second segment",
+                  "require-attachment-acceptance": false,
+                  "isolate-attachments": false
+                }
+              ],
+              "attachment-policies": [
+                {
+                  "rule-number": 1,
+                  "condition-logic": "and",
+                  "conditions": [
+                    {
+                      "type": "tag-value",
+                      "key": "segment",
+                      "operator": "contains",
+                      "value": "Global"
+                    }
+                  ],
+                  "action": {
+                    "association-method": "constant",
+                    "segment": "Global"
+                  }
+                },
+                {
+                  "rule-number": 2,
+                  "condition-logic": "and",
+                  "conditions": [
+                    {
+                      "type": "tag-value",
+                      "key": "segment",
+                      "operator": "contains",
+                      "value": "${SecondSegmentName}"
+                    }
+                  ],
+                  "action": {
+                    "association-method": "constant",
+                    "segment": "${SecondSegmentName}"
+                  }
+                }
+              ]
+            }
           ignoreCertError: !Ref IgnoreCertificateValidation
           keyPairName: !Ref KeyPairName
           regionalName: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}
