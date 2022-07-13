@@ -7,6 +7,18 @@ project:
   lambda_source_path: functions/source
   lambda_zip_path: functions/packages
   parameters:
+    KeyPairName: --override--
+    RemoteAccessCidr: --override--
+    VCO: --override--
+    VcoUsername: --override--
+    VcoPassword: --override--
+    VcoProfileName: --override--
+    SecondSegmentName: --override--
+    SubnetToAttachToSegment1: --override--
+    SubnetToAttachToSegment2: --override--
+    S3BucketName: $[taskcat_random-string]
+    QSS3BucketName: $[taskcat_autobucket]
+    QSS3BucketRegion: $[taskcat_current_region]
   regions:
     - af-south-1
     # - ap-east-1
