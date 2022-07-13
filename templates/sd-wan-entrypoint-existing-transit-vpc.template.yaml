@@ -1,0 +1,279 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: (qs-1t0tbties)
+Parameters:
+  SoftwareVersion:
+    Type: String
+    Description: VeloCloud Virtual Edge Software Version
+    AllowedValues:
+      - 322
+      - 331
+      - 431
+    ConstraintDescription: 'Must be one of the following: 322, 331, or 431'
+    Default: 431
+  EC2InstanceType:
+    Type: String
+    Description: Throughput and number of NICs dictate instance type
+    AllowedValues:
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+    Default: c5.large
+  ResourcePrefix:
+    Type: String
+    Description: Prefix used for naming all resources created by this template
+    Default: velocloud
+  ExistingVpc:
+    Type: AWS::EC2::VPC::Id
+    Description: Existing VPC ID
+  ExistingPrivateSubnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: Existing Subnet ID for the LAN side
+  ExistingPublicSubnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: Existing Subnet ID for the WAN side
+  VeloCloudEdgeName:
+    Type: String
+    Description: Name of Edge to be deployed
+  ActivationKey:
+    Type: String
+    Description: Edge Activation Key
+    AllowedPattern: ^[A-Z0-9-]+$
+  IgnoreCertificateValidation:
+    Type: String
+    Description: Set to true if using private or self signed certificate on the VCO
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+  VCO:
+    Type: String
+    Description: Orchestrator IP address or hostname (fqdn)
+  VeloCloudKeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public/Private Key Name of Edge to be deployed
+Mappings:
+  RegionMap:
+    ap-east-1:
+      '331': ami-08275d79
+      '431': ami-0859bda20c445194c
+    ap-northeast-1:
+      '322': ami-05eb836595f666ab3
+      '331': ami-02028fdfda2bedef3
+      '431': ami-05f8ba84f8686021a
+    ap-northeast-2:
+      '322': ami-0f7514d14209b90ff
+      '331': ami-001c1e312fec38b26
+      '431': ami-004726b73d452ccb6
+    ap-south-1:
+      '322': ami-0c74ea9d8c66c1a87
+      '331': ami-08df28503c779c65b
+      '431': ami-09326df5874458c3b
+    ap-southeast-1:
+      '322': ami-0d0e6c10cf0ffd3a9
+      '331': ami-00b0ac7201061dce6
+      '431': ami-0c7c7cdb1af792c19
+    ap-southeast-2:
+      '322': ami-09672eaa998504af3
+      '331': ami-0b7196fd587231352
+      '431': ami-05258b9a8201bff4d
+    ca-central-1:
+      '322': ami-0cb42e3a9a6adaf09
+      '331': ami-03a3ed427dd6af221
+      '431': ami-027a0254629bb2504
+    eu-central-1:
+      '322': ami-0d2f8031303625653
+      '331': ami-0e3ef4a959a447466
+      '431': ami-01f51d344ac508479
+    eu-north-1:
+      '322': ami-1aed6564
+      '331': ami-ba9c16c4
+      '431': ami-0814fa9946580e4ad
+    eu-west-1:
+      '322': ami-0967d4240a3fb5742
+      '331': ami-0f5a1ddf49df24d29
+      '431': ami-0977bf0f1ccaeb52f
+    eu-west-2:
+      '322': ami-0e9836eb5505034b6
+      '331': ami-0910c04a99eda46f3
+      '431': ami-0119faf2bb52c8b98
+    eu-west-3:
+      '322': ami-055c7e693f0504309
+      '331': ami-00bb1d7d48dd45aac
+      '431': ami-0371f223377a46199
+    sa-east-1:
+      '322': ami-092fa003ace20ca2b
+      '331': ami-03476bb22664d682d
+      '431': ami-033519f92f70df801
+    us-east-1:
+      '322': ami-02d53ee6e90715a83
+      '331': ami-0a9373a4b23e149b7
+      '431': ami-00adba00f6e2d6c59
+    us-east-2:
+      '322': ami-0667712c0cc7ccbd6
+      '331': ami-00009cd364607db91
+      '431': ami-0d347afd2c43a4355
+    us-gov-east-1:
+      '322': ami-9b31d0ea
+      '331': ami-b87191c9
+    us-gov-west-1:
+      '322': ami-3b11605a
+      '331': ami-f3d08492
+    us-west-1:
+      '322': ami-056b3e0e020d5733c
+      '331': ami-0eae7918e6c5e03e3
+      '431': ami-0e5c616175a857250
+    us-west-2:
+      '322': ami-04d3e79314781094f
+      '331': ami-0e2374b672d5149c3
+      '431': ami-05159b4727b41a1f7
+Resources:
+  PublicIpAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  VceInterfaceGe1:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: Management Interface
+      SourceDestCheck: false
+      SubnetId: !Ref ExistingPublicSubnet
+      GroupSet:
+        - !Ref VelocloudWANSecurityGroup
+  VceInterfaceGe2:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: WAN Interface
+      SourceDestCheck: false
+      SubnetId: !Ref ExistingPublicSubnet
+      GroupSet:
+        - !Ref VelocloudWANSecurityGroup
+  VceInterfaceGe3:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: LAN Interface
+      SourceDestCheck: false
+      SubnetId: !Ref ExistingPrivateSubnet
+      GroupSet:
+        - !Ref VelocloudLANSecurityGroup
+  VeloCloudEdge:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - PublicIpAddress
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref AWS::Region, !Ref SoftwareVersion]
+      InstanceType: !
+        Ref: EC2InstanceType
+      KeyName:
+        Ref: VeloCloudKeyPairName
+      Tags:
+        - Key: Name
+          Value: !Join
+            - '-'
+            - - Ref: ResourcePrefix
+              - vEdge
+        - Key: Owner
+          Value: Generated with VeloCloud Brownfield CloudFormation Template
+      UserData:
+        Fn::Base64: !Join
+          - ''
+          - - "#cloud-config\n"
+            - 'velocloud:
+
+              '
+            - "  vce:\n"
+            - '    vco: '
+            - Ref: VCO
+            - "\n"
+            - '    activation_code: '
+            - Ref: ActivationKey
+            - "\n"
+            - '    vco_ignore_cert_errors: '
+            - Ref: IgnoreCertificateValidation
+            - "\n"
+      NetworkInterfaces:
+        - DeleteOnTermination: false
+          NetworkInterfaceId:
+            Ref: VceInterfaceGe1
+          DeviceIndex: 0
+        - DeleteOnTermination: false
+          NetworkInterfaceId: !Ref VceInterfaceGe2
+          DeviceIndex: 1
+        - DeleteOnTermination: false
+          NetworkInterfaceId:
+            Ref: VceInterfaceGe3
+          DeviceIndex: 2
+  ElasticIpAssociation:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn:
+      - PublicIpAddress
+      - VeloCloudEdge
+    Properties:
+      AllocationId: !GetAtt PublicIpAddress.AllocationId
+      NetworkInterfaceId: !Ref VceInterfaceGe2
+  VelocloudWANSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WAN Facing Security Group
+      VpcId:
+        Ref: ExistingVpc
+      Tags:
+        - Key: Name
+          Value: !Join
+            - '-'
+            - - Ref: ResourcePrefix
+              - WAN-SG
+  AllowSNMP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudWANSecurityGroup
+      IpProtocol: udp
+      FromPort: 161
+      ToPort: 161
+      CidrIp: 0.0.0.0/0
+  AllowSSH:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudWANSecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+  AllowVCMP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudWANSecurityGroup
+      IpProtocol: udp
+      FromPort: 2426
+      ToPort: 2426
+      CidrIp: 0.0.0.0/0
+  VelocloudLANSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: >-
+        LAN Facing Security Group - WARNING: Default is Allow Only
+        ICMP, adjust accordingly for other traffic
+      VpcId:
+        Ref: ExistingVpc
+      Tags:
+        - Key: Name
+          Value: !Join
+            - '-'
+            - - Ref: ResourcePrefix
+              - LAN-SG
+  AllowLANTraffic:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref VelocloudLANSecurityGroup
+      IpProtocol: icmp
+      FromPort: -1
+      ToPort: -1
+      CidrIp: 0.0.0.0/0
