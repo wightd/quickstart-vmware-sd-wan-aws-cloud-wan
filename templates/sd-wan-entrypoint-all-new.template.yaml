@@ -37,16 +37,13 @@ Parameters:
   VCO:
     Type: String
     Description: Orchestrator IP address or hostname (fqdn)
-    Default: vco58-usvi1.velocloud.net
   VcoUsername:
     Type: String
     Description: Username for Enterprise account
-    Default: cloudwan@vmware.com
   VcoPassword:
     Type: String
     Description: Password for Enterprise account
     NoEcho: true
-    Default: VMware1!
     MinLength: 5
     MaxLength: 20
   IgnoreCertificateValidation:
@@ -63,17 +60,14 @@ Parameters:
     Description:
       'VCO Profile name to be used to deploy SD-WAN (NOTE: must match what
       is already configure on VCO)'
-    Default: AWS Transit Hub Profile
   SecondSegmentName:
     Type: String
     Description:
       'Second VCO segment name - existing or created (NOTE: must match
       what is already configure on VCO)'
-    Default: Development
   KeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public key name for resource deployments
-    Default: WIGHT_KEY
   S3BucketName:
     Type: String
     Description: S3 Bucket used to store json templates and lambda zip files
