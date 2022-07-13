@@ -272,8 +272,3 @@ Resources:
                   - networkmanager:CreateVpcAttachment
                   - networkmanager:CreateSiteToSiteVpnAttachment
                 Resource: '*'
-  QuickstartInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles: !Ref QuickstartRole
