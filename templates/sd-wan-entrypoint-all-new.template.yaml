@@ -285,28 +285,86 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
+              - Sid: Ec2Global
+                Effect: Allow
                 Action:
-                  - ec2:*
-                  - logs:*
-                  - iam:GetPolicyVersion
-                  - iam:ListAttachedRolePolicies
-                  - iam:ListRolePolicies
-                  - iam:GetRole
-                  - iam:GetPolicy
-                  - iam:ListRoles
-                  - iam:GetRolePolicy
-                  - iam:PassRole
+                  - ec2:DescribeAvailabilityZones
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeVpnConnections
+                Resource: '*'
+              - Sid: ManageVpcScoped
+                Effect: Allow
+                Action:
+                  - ec2:AttachInternetGateway
+                  - ec2:CreateInternetGateway
+                  - ec2:CreateSubnet
+                  - ec2:CreateTags
+                  - ec2:CreateVpc
+                  - ec2:DeleteInternetGateway
+                  - ec2:DeleteSubnet
+                  - ec2:DeleteTags
+                  - ec2:DeleteVpc
+                  - ec2:DetachInternetGateway
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:internet-gateway/*
+                  - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*
+                  - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*
+              - Sid: ManageVpnScoped
+                Effect: Allow
+                Action:
+                  - ec2:CreateCustomerGateway
+                  - ec2:CreateTags
+                  - ec2:DeleteTags
+                  - ec2:CreateVpnConnection
+                  - ec2:CreateVpnConnectionRoute
+                  - ec2:DeleteCustomerGateway
+                  - ec2:DeleteVpnConnection
+                  - ec2:DeleteVpnConnectionRoute
+                  - ec2:ModifyVpnConnection
+                  - ec2:ModifyVpnConnectionOptions
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:customer-gateway/*
+                  - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpn-connection/*
+              - Sid: ManageCloudWatchLogs
+                Effect: Allow
+                Action:
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:GetLogEvents
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:PutMetricFilter
+                  - logs:PutRetentionPolicy
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*
+              - Sid: ManageCloudFormation
+                Effect: Allow
+                Action:
                   - cloudformation:CreateStack
                   - cloudformation:DeleteStack
                   - cloudformation:DescribeStacks
-                  - s3:PutObject
+                Resource:
+                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/brownfield/*
+                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/brownfield/*
+              - Effect: Allow
+                Action:
                   - s3:GetObject
-                  - networkmanager:TagResource
+                  - s3:PutObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
+              - Sid: ManageNetworkManagerGlobal
+                Effect: Allow
+                Action:
                   - networkmanager:CreateGlobalNetwork
-                  - networkmanager:DescribeGlobalNetworks
-                  - networkmanager:CreateCoreNetwork
-                  - networkmanager:GetCoreNetwork
-                  - networkmanager:CreateVpcAttachment
-                  - networkmanager:CreateSiteToSiteVpnAttachment
                 Resource: '*'
+              - Sid: ManageNetworkManagerScoped
+                Effect: Allow
+                Action:
+                  - networkmanager:CreateCoreNetwork
+                  - networkmanager:CreateGlobalNetwork
+                  - networkmanager:CreateSiteToSiteVpnAttachment
+                  - networkmanager:CreateVpcAttachment
+                  - networkmanager:DescribeGlobalNetworks
+                  - networkmanager:GetCoreNetwork
+                  - networkmanager:TagResource
+                Resource: !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:core-network/*
