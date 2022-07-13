@@ -19,16 +19,25 @@ Metadata:
           default: AWS CloudWAN Configuration
         Parameters:
           - ResourcePrefix
-          - CloudFormationGreenfieldUrl
-          - CloudFormationBrownfieldUrl
           - S3BucketName
-          - LambdaPackageName
           - SubnetToAttachToSegment1
           - SubnetToAttachToSegment2
           - KeyPairName
+      - Label:
+          default: AWS Quick Start S3 bucket configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3BucketRegion
+          - QSS3KeyPrefix
     ParameterLabels:
       VCO:
         default: Which VCO should this be deployed to?
+      QSS3BucketName:
+        default: Name
+      QSS3BucketRegion:
+        default: Region
+      QSS3KeyPrefix:
+        default: Key prefix
 Parameters:
   ResourcePrefix:
     Type: String
@@ -70,20 +79,7 @@ Parameters:
     Description: Public key name for resource deployments
   S3BucketName:
     Type: String
-    Description: S3 Bucket used to store json templates and lambda zip files
-    Default: quickstart-vmware-sd-wan-aws-cloud-wan
-  CloudFormationGreenfieldUrl:
-    Type: String
-    Description: URL to CloudFormation Greenfield Template
-    Default: https://quickstart-vmware-sd-wan-aws-cloud-wan.s3.us-west-1.amazonaws.com/quickstart-vmware-sd-wan-aws-cloud-wan-cf-greenfield.json
-  CloudFormationBrownfieldUrl:
-    Type: String
-    Description: URL to CloudFormation Brownfield Template
-    Default: https://quickstart-vmware-sd-wan-aws-cloud-wan.s3.us-west-1.amazonaws.com/quickstart-vmware-sd-wan-aws-cloud-wan-cf-brownfield.json
-  LambdaPackageName:
-    Type: String
-    Description: The name of the lambda package zip file
-    Default: quickstart-vmware-sd-wan-aws-cloud-wan-lambda-function.zip
+    Description: S3 Bucket used to store json templates
   TransitVpcCidrBlock:
     Type: String
     Description: CIDR block for the TransitVPC
@@ -94,6 +90,50 @@ Parameters:
   SubnetToAttachToSegment2:
     Type: AWS::EC2::Subnet::Id
     Description: Specify subnet to be used for segment two
+  QSS3BucketName:
+    Type: String
+    Description: >-
+      Name of the S3 bucket for your copy of the Quick Start assets.
+      Keep the default name unless you are customizing the template.
+      Changing the name updates code references to point to a new Quick
+      Start location. This name can include numbers, lowercase letters,
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
+      See https://aws-quickstart.github.io/option1.html.
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: >-
+      The Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a
+      hyphen (-).
+    Default: aws-quickstart
+  QSS3BucketRegion:
+    Type: String
+    Description: >-
+      AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+      hosted. Keep the default Region unless you are customizing the template.
+      Changing this Region updates code references to point to a new
+      Quick Start location. When using your own bucket, specify the Region.
+      See https://aws-quickstart.github.io/option1.html.
+    Default: us-east-1
+  QSS3KeyPrefix:
+    Type: String
+    Description: >-
+      S3 key prefix that is used to simulate a directory for your copy of the
+      Quick Start assets. Keep the default prefix unless you are customizing
+      the template. Changing this prefix updates code references to point to
+      a new Quick Start location. This prefix can include numbers, lowercase
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End
+      with a forward slash.
+      See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
+      and https://aws-quickstart.github.io/option1.html.
+    AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
+    ConstraintDescription:
+      The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/).
+    Default: quickstart-vmware-sd-wan-aws-cloud-wan/
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
 Resources:
   BuildQuickStart:
     Type: AWS::Lambda::Function
@@ -102,8 +142,8 @@ Resources:
     Properties:
       Role: !GetAtt QuickstartRole.Arn
       Code:
-        S3Bucket: !Ref S3BucketName
-        S3Key: !Ref LambdaPackageName
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/vco-client/lambda.zip
       Environment:
         Variables:
           projectName: !Ref ResourcePrefix
@@ -113,8 +153,14 @@ Resources:
           profileName: !Ref VcoProfileName
           segmentName: !Ref SecondSegmentName
           s3BucketName: !Ref S3BucketName
-          gfCfUrl: !Ref CloudFormationGreenfieldUrl
-          bfCfUrl: !Ref CloudFormationBrownfieldUrl
+          gfCfUrl: !Sub
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/greenfield.template.yaml
+            - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+              S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+          bfCfUrl: !Sub
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/brownfield.template.yaml
+            - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+              S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
           policyJson: !Sub  |
             {
               "version": "2021.12",
