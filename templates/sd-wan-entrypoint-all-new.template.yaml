@@ -137,8 +137,6 @@ Conditions:
 Resources:
   BuildQuickStart:
     Type: AWS::Lambda::Function
-    DependsOn:
-      - QuickstartRole
     Properties:
       Role: !GetAtt QuickstartRole.Arn
       Code:
