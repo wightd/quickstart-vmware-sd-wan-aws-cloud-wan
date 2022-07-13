@@ -3,6 +3,45 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: (qs-1t0tbties)
 Metadata:
   LICENSE: Apache License, Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VCO configuration
+        Parameters:
+          - VCO
+          - IgnoreCertificateValidation
+      - Label:
+          default: EC2 configuration
+        Parameters:
+          - VeloCloudKeyPairName
+          - SoftwareVersion
+          - EC2InstanceType
+          - ExistingVpc
+          - ExistingPublicSubnet
+          - ExistingPrivateSubnet
+          - ActivationKey
+          - ResourcePrefix
+    ParameterLabels:
+      SoftwareVersion:
+        default: Software version
+      EC2InstanceType:
+        default: EC2 instance type
+      ResourcePrefix:
+        default: Resource prefix
+      ExistingVpc:
+        default: Existing VPC
+      ExistingPrivateSubnet:
+        default: Existing private subnet
+      ExistingPublicSubnet:
+        default: Existing public subnet
+      ActivationKey:
+        default: Edge activation key
+      IgnoreCertificateValidation:
+        default: Ignore certificate validation
+      VCO:
+        default: Which VCO should this be deployed to?
+      VeloCloudKeyPairName:
+        default: EC2 key pair name
 Parameters:
   SoftwareVersion:
     Type: String

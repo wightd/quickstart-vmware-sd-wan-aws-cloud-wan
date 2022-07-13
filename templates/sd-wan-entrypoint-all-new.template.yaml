@@ -30,8 +30,30 @@ Metadata:
           - QSS3BucketRegion
           - QSS3KeyPrefix
     ParameterLabels:
+      ResourcePrefix:
+        default: Resource label prefix
       VCO:
         default: Which VCO should this be deployed to?
+      VcoUsername:
+        default: Username
+      VcoPassword:
+        default: Password
+      IgnoreCertificateValidation:
+        default: Ignore certificate validation
+      VcoProfileName:
+        default: VCO profile name
+      SecondSegmentName:
+        default: Second VCO segment name
+      KeyPairName:
+        default: EC2 key pair name
+      S3BucketName:
+        default: S3 bucket name
+      TransitVpcCidrBlock:
+        default: Transit VPC CIDR block
+      SubnetToAttachToSegment1:
+        default: Subnet 1
+      SubnetToAttachToSegment2:
+        default: Subnet 2
       QSS3BucketName:
         default: Name
       QSS3BucketRegion:

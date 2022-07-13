@@ -3,6 +3,72 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: (qs-1t6n1ncpp)
 Metadata:
   LICENSE: Apache License, Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VCO configuration
+        Parameters:
+          - VCO
+          - IgnoreCertificateValidation
+      - Label:
+          default: VPC configuration
+        Parameters:
+          - AvailabilityZone1
+          - AvailabilityZone2
+          - AvailabilityZone3
+          - VpcCidrBlockValue
+          - Az1PublicSubnetValue
+          - Az2PublicSubnetValue
+          - Az3PublicSubnetValue
+          - Az1PrivateSubnetValue
+          - Az2PrivateSubnetValue
+          - Az3PrivateSubnetValue
+      - Label:
+          default: EC2 configuration
+        Parameters:
+          - EdgeDeploymentCount
+          - VeloCloudKeyPairName
+          - SoftwareVersion
+          - EC2InstanceType
+          - ActivationKey
+          - ResourcePrefix
+    ParameterLabels:
+      AvailabilityZone1:
+        default: Availability zone 1
+      AvailabilityZone2:
+        default: Availability zone 2
+      AvailabilityZone3:
+        default: Availability zone 3
+      SoftwareVersion:
+        default: Software version
+      EC2InstanceType:
+        default: EC2 instance type
+      ResourcePrefix:
+        default: Resource prefix
+      ActivationKey:
+        default: Edge activation key
+      IgnoreCertificateValidation:
+        default: Ignore certificate validation
+      VCO:
+        default: Which VCO should this be deployed to?
+      VeloCloudKeyPairName:
+        default: EC2 key pair name
+      EdgeDeploymentCount:
+        default: Edge deployment count
+      VpcCidrBlockValue:
+        default: VPC CIDR block value
+      Az1PublicSubnetValue:
+        default: Availability zone 1 public subnet
+      Az1PrivateSubnetValue:
+        default: Availability zone 1 private subnet
+      Az2PublicSubnetValue:
+        default: Availability zone 2 public subnet
+      Az2PrivateSubnetValue:
+        default: Availability zone 2 private subnet
+      Az3PublicSubnetValue:
+        default: Availability zone 3 public subnet
+      Az3PrivateSubnetValue:
+        default: Availability zone 3 private subnet
 Parameters:
   SoftwareVersion:
     Type: String
