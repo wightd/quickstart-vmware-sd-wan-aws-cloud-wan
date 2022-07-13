@@ -75,8 +75,8 @@ Parameters:
     Type: String
     Description: Password for Enterprise account
     NoEcho: true
-    MinLength: 5
-    MaxLength: 20
+    MinLength: 8
+    MaxLength: 32
   IgnoreCertificateValidation:
     Type: String
     Description:
