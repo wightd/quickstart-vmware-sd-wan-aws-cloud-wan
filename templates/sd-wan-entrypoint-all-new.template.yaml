@@ -57,14 +57,14 @@ Parameters:
     Default: 'false'
   VcoProfileName:
     Type: String
-    Description:
-      'VCO Profile name to be used to deploy SD-WAN (NOTE: must match what
-      is already configure on VCO)'
+    Description: >-
+      VCO Profile name to be used to deploy SD-WAN (NOTE: must match what
+      is already configure on VCO)
   SecondSegmentName:
     Type: String
-    Description:
-      'Second VCO segment name - existing or created (NOTE: must match
-      what is already configure on VCO)'
+    Description: >-
+      Second VCO segment name - existing or created (NOTE: must match
+      what is already configure on VCO)
   KeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public key name for resource deployments

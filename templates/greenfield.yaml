@@ -181,26 +181,16 @@ Resources:
       CidrBlock: !Ref VpcCidrBlockValue
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - VPC
+          Value: !Sub ${ResourcePrefix}-VPC
   Az1PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock:
-        Ref: Az1PublicSubnetValue
-      AvailabilityZone:
-        Ref: AvailabilityZone1
-      VpcId:
-        Ref: VelocloudVPC
+      CidrBlock: !Ref Az1PublicSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone1
+      VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value:
-            Fn::Join:
-              - '-'
-              - - !Ref ResourcePrefix
-                - AZ1-Public-SN
+          Value: !Sub ${ResourcePrefix}-AZ1-Public-SN
   Az1PrivateSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -209,10 +199,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ1-Private-SN
+          Value: !Sub ${ResourcePrefix}-AZ1-Private-SN
   Az2PublicSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ2
@@ -222,10 +209,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ2-Public-SN
+          Value: !Sub ${ResourcePrefix}-AZ2-Public-SN
   Az2PrivateSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ2
@@ -235,10 +219,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ2-Private-SN
+          Value: !Sub ${ResourcePrefix}-AZ2-Private-SN
   Az23PublicSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ3
@@ -248,10 +229,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ2-Public-SN
+          Value: !Sub ${ResourcePrefix}-AZ2-Public-SN
   Az23PrivateSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ3
@@ -261,10 +239,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ2-Private-SN
+          Value: !Sub ${ResourcePrefix}-AZ2-Private-SN
   Az3PublicSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ3
@@ -274,10 +249,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ3-Public-SN
+          Value: !Sub ResourcePrefix-AZ3-Public-SN
   Az3PrivateSubnet:
     Type: AWS::EC2::Subnet
     Condition: CreateAZ3
@@ -287,29 +259,20 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - AZ3-Private-SN
+          Value: !Sub ${ResourcePrefix}-AZ3-Private-SN
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - IGW
+          Value: !Sub ${ResourcePrefix}-IGW
   Az1PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - Az1-Public-RT
+          Value: !Sub ${ResourcePrefix}-Az1-Public-RT
   Az2PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Condition: CreateAZ2
@@ -317,10 +280,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - Az2-Public-RT
+          Value: !Sub ${ResourcePrefix}-Az2-Public-RT
   Az23PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Condition: CreateAZ3
@@ -328,10 +288,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - Az2-Public-RT
+          Value: !Sub ${ResourcePrefix}-Az2-Public-RT
   Az3PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Condition: CreateAZ3
@@ -339,10 +296,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - Az3-Public-RT
+          Value: !Sub ${ResourcePrefix}-Az3-Public-RT
   PublicIpAddress:
     Type: AWS::EC2::EIP
     DependsOn:
@@ -383,29 +337,17 @@ Resources:
       KeyName: !Ref VeloCloudKeyPairName
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - vEdge
+          Value: !Sub ${ResourcePrefix}-vEdge
         - Key: Owner
           Value: Generated with VeloClouds Greenfield CloudFormation Template
       UserData:
-        Fn::Base64: !Join
-          - ''
-          - - "#cloud-config\n"
-            - 'velocloud:
-
-              '
-            - "  vce:\n"
-            - '    vco: '
-            - Ref: VCO
-            - "\n"
-            - '    activation_code: '
-            - Ref: ActivationKey
-            - "\n"
-            - '    vco_ignore_cert_errors: '
-            - Ref: IgnoreCertificateValidation
-            - "\n"
+        Fn::Base64: !Sub |
+          #cloud-config
+          velocloud:
+            vce:
+              vco: ${VCO}
+              activation_code: ${ActivationKey}
+              vco_ignore_cert_errors: ${IgnoreCertificateValidation}
       NetworkInterfaces:
         - DeleteOnTermination: false
           NetworkInterfaceId: !Ref VceInterfaceGe1
@@ -496,10 +438,7 @@ Resources:
       VpcId: !Ref VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - Ref: ResourcePrefix
-              - WAN-SG
+          Value: !Sub ${ResourcePrefix}-WAN-SG
   AllowSNMP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -537,10 +476,7 @@ Resources:
         Ref: VelocloudVPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref ResourcePrefix
-              - LAN-SG
+          Value: !Sub ${ResourcePrefix}-LAN-SG
   AllowLANTraffic:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:

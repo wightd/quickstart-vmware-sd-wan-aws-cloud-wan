@@ -172,29 +172,17 @@ Resources:
         Ref: VeloCloudKeyPairName
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - Ref: ResourcePrefix
-              - vEdge
+          Value: !Sub ${ResourcePrefix}-vEdge
         - Key: Owner
           Value: Generated with VeloCloud Brownfield CloudFormation Template
       UserData:
-        Fn::Base64: !Join
-          - ''
-          - - "#cloud-config\n"
-            - 'velocloud:
-
-              '
-            - "  vce:\n"
-            - '    vco: '
-            - Ref: VCO
-            - "\n"
-            - '    activation_code: '
-            - Ref: ActivationKey
-            - "\n"
-            - '    vco_ignore_cert_errors: '
-            - Ref: IgnoreCertificateValidation
-            - "\n"
+        Fn::Base64: !Sub |
+          #cloud-config
+          velocloud:
+            vce:
+              vco: ${VCO}
+              activation_code: ${ActivationKey}
+              vco_ignore_cert_errors: ${IgnoreCertificateValidation}
       NetworkInterfaces:
         - DeleteOnTermination: false
           NetworkInterfaceId:
@@ -222,10 +210,7 @@ Resources:
         Ref: ExistingVpc
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - Ref: ResourcePrefix
-              - WAN-SG
+          Value: !Sub ${ResourcePrefix}-WAN-SG
   AllowSNMP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -263,10 +248,7 @@ Resources:
         Ref: ExistingVpc
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - Ref: ResourcePrefix
-              - LAN-SG
+          Value: !Sub ${ResourcePrefix}-LAN-SG
   AllowLANTraffic:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
