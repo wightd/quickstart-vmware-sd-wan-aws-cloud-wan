@@ -31,17 +31,14 @@ Parameters:
     Description: Prefix used for naming all resources created by this template
     Default: velocloud
   AvailabilityZone1:
-    Type: String
+    Type: AWS::EC2::AvailabilityZone::Name
     Description: Availability zone to deploy in
-    Default: us-east-2a
   AvailabilityZone2:
-    Type: String
+    Type: AWS::EC2::AvailabilityZone::Name
     Description: Availability zone to deploy in
-    Default: us-east-2b
   AvailabilityZone3:
-    Type: String
+    Type: AWS::EC2::AvailabilityZone::Name
     Description: Availability zone to deploy in
-    Default: us-east-2c
   ActivationKey:
     Type: String
     Description: Edge Activation Key
