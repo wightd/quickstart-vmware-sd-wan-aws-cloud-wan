@@ -419,8 +419,6 @@ Resources:
           DeviceIndex: 2
   VpcGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
-    DependsOn:
-      - InternetGateway
     Properties:
       VpcId: !Ref VelocloudVPC
       InternetGatewayId: !Ref InternetGateway
@@ -450,9 +448,7 @@ Resources:
   Az1PublicDefaultRoute:
     Type: AWS::EC2::Route
     DependsOn:
-      - InternetGateway
       - VpcGatewayAttachment
-      - Az1PublicRouteTable
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       RouteTableId: !Ref Az1PublicRouteTable
@@ -461,7 +457,6 @@ Resources:
     Type: AWS::EC2::Route
     Condition: CreateAZ2
     DependsOn:
-      - InternetGateway
       - VpcGatewayAttachment
       - Az1PublicRouteTable
     Properties:
@@ -472,7 +467,6 @@ Resources:
     Type: AWS::EC2::Route
     Condition: CreateAZ3
     DependsOn:
-      - InternetGateway
       - VpcGatewayAttachment
       - Az1PublicRouteTable
     Properties:
@@ -483,7 +477,6 @@ Resources:
     Type: AWS::EC2::Route
     Condition: CreateAZ3
     DependsOn:
-      - InternetGateway
       - VpcGatewayAttachment
       - Az1PublicRouteTable
     Properties:
@@ -493,7 +486,6 @@ Resources:
   ElasticIpAssociation:
     Type: AWS::EC2::EIPAssociation
     DependsOn:
-      - PublicIpAddress
       - VeloCloudEdge
     Properties:
       AllocationId: !GetAtt PublicIpAddress.AllocationId
