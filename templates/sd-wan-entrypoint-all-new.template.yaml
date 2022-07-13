@@ -157,6 +157,12 @@ Parameters:
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
 Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref S3BucketName
   BuildQuickStart:
     Type: AWS::Lambda::Function
     Properties:
