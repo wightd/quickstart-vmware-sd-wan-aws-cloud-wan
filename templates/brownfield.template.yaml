@@ -1,6 +1,8 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: (qs-1t0tbties)
+Metadata:
+  LICENSE: Apache License, Version 2.0
 Parameters:
   SoftwareVersion:
     Type: String

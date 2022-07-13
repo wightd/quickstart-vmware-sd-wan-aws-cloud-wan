@@ -2,6 +2,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: (qs-1t6r10n3a)
 Metadata:
+  LICENSE: Apache License, Version 2.0
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
