@@ -11,8 +11,6 @@ Metadata:
           - VcoUsername
           - VcoPassword
           - IgnoreCertificateValidation
-          - VMwareReleaseVersion
-          - VMwareEC2InstanceType
           - VcoProfileName
           - SecondSegmentName
           - TransitVpcCidrBlock
@@ -36,28 +34,6 @@ Parameters:
     Type: String
     Description: Prefix used for naming all resources created by this template
     Default: VMware-SDWAN-CloudWAN-Quickstart
-  VMwareReleaseVersion:
-    Type: String
-    Description: SD-WAN Release Version
-    AllowedValues:
-      - '322'
-      - '331'
-      - '431'
-    Default: '431'
-    ConstraintDescription: 'Must be one of the following: 3.2.2, 3.3.1, or 4.3.1'
-  VMwareEC2InstanceType:
-    Type: String
-    Description: Throughput and number of NICs dictate instance type
-    AllowedValues:
-      - c4.large
-      - c4.xlarge
-      - c4.2xlarge
-      - c4.4xlarge
-      - c5.large
-      - c5.xlarge
-      - c5.2xlarge
-      - c5.4xlarge
-    Default: c5.large
   VCO:
     Type: String
     Description: Orchestrator IP address or hostname (fqdn)

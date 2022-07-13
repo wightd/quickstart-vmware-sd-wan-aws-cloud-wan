@@ -40,9 +40,6 @@ Parameters:
     Type: String
     Description: Availability zone to deploy in
     Default: us-east-2c
-  VeloCloudEdgeName:
-    Type: String
-    Description: Name of Edge to be deployed
   ActivationKey:
     Type: String
     Description: Edge Activation Key

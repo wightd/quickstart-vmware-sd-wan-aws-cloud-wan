@@ -37,9 +37,6 @@ Parameters:
   ExistingPublicSubnet:
     Type: AWS::EC2::Subnet::Id
     Description: Existing Subnet ID for the WAN side
-  VeloCloudEdgeName:
-    Type: String
-    Description: Name of Edge to be deployed
   ActivationKey:
     Type: String
     Description: Edge Activation Key
