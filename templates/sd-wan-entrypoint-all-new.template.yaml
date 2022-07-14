@@ -383,6 +383,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - networkmanager:CreateGlobalNetwork
+                  - networkmanager:TagResource # <- Required in global scope for adding tags to global network
                 Resource: '*'
               - Sid: ManageNetworkManagerScoped
                 Effect: Allow
