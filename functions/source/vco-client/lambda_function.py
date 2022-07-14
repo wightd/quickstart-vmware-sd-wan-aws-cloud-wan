@@ -1798,11 +1798,15 @@ def lambda_handler(event, context):
         configuration_file = str(os.environ["projectName"] + ".json")
         s3_bucket_name = os.environ["s3BucketName"]
 
-        # Load configuration JSON file from S3
-        s3 = boto3.resource("s3")
-        content_object = s3.Object(s3_bucket_name, configuration_file)
-        file_content = content_object.get()["Body"].read().decode("utf-8")
-        config_in = json.loads(file_content)
+        try:
+            # Load configuration JSON file from S3
+            s3 = boto3.resource("s3")
+            content_object = s3.Object(s3_bucket_name, configuration_file)
+            file_content = content_object.get()["Body"].read().decode("utf-8")
+            config_in = json.loads(file_content)
+        except Exception as e:
+            logging.error("Could not get the JSON file from S3: " + str(e))
+            cfnresponse.send(event, context, cfnresponse.FAILED, {}, event["RequestId"])
 
         # Dump configuration to CloudWatch
         try:
