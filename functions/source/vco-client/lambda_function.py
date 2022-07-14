@@ -790,13 +790,18 @@ def aws_get_vpcId(vpc_name):
     client = boto3.client("ec2")
     response = {}
 
+    vpcId = ""
+
     try:
         response = client.describe_vpcs(Filters=[{"Name": "tag:Name", "Values": [vpc_name]}])
         logging.info("Getting VPC info... Done")
     except ClientError as e:
         logging.error(e)
 
-    vpcId = response["Vpcs"][0]["VpcId"]
+    if len(response["Vpcs"]) > 0:
+        vpcId = response["Vpcs"][0].get("VpcId")
+    else:
+        raise Exception("Unknown: '" + response["Vpcs"] + "'.")
 
     return vpcId
 
