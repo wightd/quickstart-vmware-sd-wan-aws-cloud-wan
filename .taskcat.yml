@@ -8,7 +8,6 @@ project:
   lambda_zip_path: functions/packages
   parameters:
     KeyPairName: --override--
-    RemoteAccessCidr: --override--
     VCO: --override--
     VcoUsername: --override--
     VcoPassword: --override--
