@@ -360,11 +360,23 @@ Resources:
                   - cloudformation:DeleteStack
                   - cloudformation:DescribeStacks
                 Resource: !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SD-WAN-Edge-*/*
-              - Effect: Allow
+              - Sid: S3GetObject
+                Effect: Allow
                 Action:
                   - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${QSS3BucketName}   # <- Only required for testing with taskcat
+                  - !Sub arn:${AWS::Partition}:s3:::${QSS3BucketName}/* # <- Only required for testing with taskcat
+                  - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}
+                  - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
+              - Sid: S3PutObject
+                Effect: Allow
+                Action:
                   - s3:PutObject
-                Resource: !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
               - Sid: ManageNetworkManagerGlobal
                 Effect: Allow
                 Action:
