@@ -1308,6 +1308,44 @@ def aws_delete_vpn_cgw(vco_dict):
 
 
 def lambda_handler(event, context):
+    def authenticate_to_vco():
+        """Get the VCO credentials from AWS Secrets Manager and then
+        authenticate to the VCO"""
+
+        try:
+            logger.debug("Configuring the AWS Secrets Manager client...")
+            secrets_client = boto3.client("secretsmanager")
+        except Exception as e:
+            logger.error("Failed to configure client: '" + str(e) + "'.")
+            cfnresponse.send(event, context, cfnresponse.FAILED, {}, event["RequestId"])
+
+        try:
+            arn = os.environ.get("VcoCredentialsArn", "")
+            logger.info("Getting VCO credentials: '" + arn + "'.")
+            response: dict = secrets_client.get_secret_value(
+                SecretId = arn
+            )
+            logger.info("Got VCO credentials: '" + arn + "'.")
+
+            credentials = json.loads(response.get("SecretString"))
+        except Exception as e:
+            logger.error("Error getting secret: '" + str(e) + "'.")
+            cfnresponse.send(event, context, cfnresponse.FAILED, {}, event["RequestId"])
+
+        try:
+            logger.info("Authenticating to the VCO...")
+            client.authenticate(credentials.get("username", ""), credentials.get("password", ""))
+            logger.info("Authenticated to the VCO.")
+        except Exception as e:
+            logger.error("Login error: '" + str(e) + "'.")
+
+        logger.debug("Overwriting credentials in memory...")
+        credentials = {
+            "username": str(uuid.uuid4()),
+            "password": str(uuid.uuid4()),
+        }
+
+
     # CloudFormation CREATE request
 
     if event["RequestType"] == "Create":
@@ -1319,8 +1357,6 @@ def lambda_handler(event, context):
         # Get environment variables from quickstart-vmware-sd-wan-aws-cloud-wan-cf-start.json
         config_d["projectName"] = os.environ["projectName"]
         config_d["vco"] = os.environ["VCO"]
-        config_d["enterprise_email"] = os.environ["vcoUsername"]
-        config_d["enterprise_password"] = os.environ["vcoPassword"]
         config_d["ignore_cert_error"] = os.environ["ignoreCertError"]
         config_d["profile_name"] = os.environ["profileName"]
         config_d["SegmentList"].append(os.environ["segmentName"])
@@ -1355,11 +1391,7 @@ def lambda_handler(event, context):
 
         # Authenticate with VCO
         client = VcoClient(config_d["vco"], verify_ssl=False)
-        try:
-            client.authenticate(config_d["enterprise_email"], config_d["enterprise_password"])
-        except Exception as e:
-            cfnresponse.send(event, context, cfnresponse.FAILED, {}, event["RequestId"])
-            logging.error("Encountered error while authenticating: " + str(e))
+        authenticate_to_vco()
 
         # Get VCO Enterprise ID
         try:
@@ -1803,11 +1835,7 @@ def lambda_handler(event, context):
 
         # Cleanup VCO
         client = VcoClient(config_in["vco"], verify_ssl=False)
-        try:
-            client.authenticate(config_in["enterprise_email"], config_in["enterprise_password"])
-        except Exception as e:
-            logging.error("Encountered error while authenticating: " + str(e))
-            cfnresponse.send(event, context, cfnresponse.FAILED, {}, event["RequestId"])
+        authenticate_to_vco()
 
         # Ensure Edges are OFFLINE before deleting
         try:

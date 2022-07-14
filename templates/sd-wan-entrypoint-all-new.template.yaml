@@ -157,6 +157,18 @@ Parameters:
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
 Resources:
+  VcoCredentials:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub
+        - /aws/quick-start/vmware-sd-wan/${StackId}/VcoCredentials
+        - StackId: !Select [2, !Split [/, !Ref AWS::StackId]]
+      Description: The VMware SD-WAN Orchestrator credentials.
+      SecretString: !Sub >-
+        {
+          "username": "${VcoUsername}",
+          "password": "${VcoPassword}"
+        }
   S3Bucket:
     Type: AWS::S3::Bucket
     UpdateReplacePolicy: Retain
@@ -174,8 +186,7 @@ Resources:
         Variables:
           projectName: !Ref ResourcePrefix
           VCO: !Ref VCO
-          vcoUsername: !Ref VcoUsername
-          vcoPassword: !Ref VcoPassword
+          VcoCredentialsArn: !Ref VcoCredentials
           profileName: !Ref VcoProfileName
           segmentName: !Ref SecondSegmentName
           s3BucketName: !Ref S3BucketName
@@ -285,6 +296,10 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
+              - Sid: GetVcoCredentials
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref VcoCredentials
               - Sid: Ec2Global
                 Effect: Allow
                 Action:
