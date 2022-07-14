@@ -100,11 +100,13 @@ Parameters:
     Type: AWS::EC2::AvailabilityZone::Name
     Description: Availability zone to deploy in
   AvailabilityZone2:
-    Type: AWS::EC2::AvailabilityZone::Name
+    Type: String
     Description: Availability zone to deploy in
+    Default: ''
   AvailabilityZone3:
-    Type: AWS::EC2::AvailabilityZone::Name
+    Type: String
     Description: Availability zone to deploy in
+    Default: ''
   ActivationKey:
     Type: String
     Description: Edge Activation Key
