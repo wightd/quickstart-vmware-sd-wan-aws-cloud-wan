@@ -129,7 +129,7 @@ def create_edge_cluster(vco_dict):
     d = {"method": "enterprise/insertEnterpriseEdgeCluster",
          "params": {
              "enterpriseId": vco_dict["enterprise_id"],
-             "name": vco_dict["projectName"],
+             "name": vco_dict["projectName"] + "-" + str(uuid.uuid4())[:4],
              "type": "edgeHubCluster",
              "data": {
                  "autoRebalance": True
