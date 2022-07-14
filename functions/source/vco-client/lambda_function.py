@@ -1501,7 +1501,7 @@ def lambda_handler(event, context):
         try:
             for x in range(config_d["edge_count"]):
                 edgeOnline = False
-                i = len(config_d["edges"]) - 1
+                i = len(config_d.get("edges", 0)) - 1
                 while i < 30:  # Set for five minute timeout
                     call = get_edge_info(config_d["edges"][x]["edgeId"])
                     api_results = client.request(call.get("method"), call.get("params"))
@@ -1521,7 +1521,7 @@ def lambda_handler(event, context):
                 if not edgeOnline:
                     raise ValueError("Edge WAN link not up before timeout!")
 
-        except ApiException as e:
+        except Exception as e:
             logging.error("Encountered API error with call edges public IP: " + str(e))
             cfnresponse.send(event, context, cfnresponse.FAILED, {}, event["RequestId"])
 
