@@ -280,6 +280,13 @@ Resources:
       ServiceToken: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${BuildQuickStart}
   QuickstartRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              Global network resources require global scope- cfn-lint bug
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -340,18 +347,34 @@ Resources:
                 Effect: Allow
                 Action:
                   - networkmanager:CreateGlobalNetwork
-                  - networkmanager:TagResource # <- Required in global scope for adding tags to global network
+                  - networkmanager:DeleteGlobalNetwork
+                  - networkmanager:DescribeGlobalNetworks
+                  - networkmanager:TagResource
                 Resource: '*'
               - Sid: ManageNetworkManagerScoped
                 Effect: Allow
                 Action:
                   - networkmanager:CreateCoreNetwork
-                  - networkmanager:CreateGlobalNetwork
+                  - networkmanager:CreateConnectAttachment
                   - networkmanager:CreateSiteToSiteVpnAttachment
                   - networkmanager:CreateVpcAttachment
-                  - networkmanager:DescribeGlobalNetworks
+                  - networkmanager:DeleteAttachment
+                  - networkmanager:DeleteConnection
+                  - networkmanager:DeleteCoreNetwork
+                  - networkmanager:DeleteResourcePolicy
+                  - networkmanager:DeleteCoreNetworkPolicyVersion
                   - networkmanager:GetCoreNetwork
+                  - networkmanager:GetCoreNetworkPolicy
+                  - networkmanager:GetCoreNetworkChangeSet
+                  - networkmanager:ListAttachments
+                  - networkmanager:ListCoreNetworkPolicyVersions
+                  - networkmanager:ListCoreNetworks
+                  - networkmanager:ListTagsForResource
                   - networkmanager:TagResource
+                Resource:
+                  - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:attachment/*
+                  - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:core-network/*
+                  - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:global-network/*
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEC2FullAccess
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonVPCFullAccess
