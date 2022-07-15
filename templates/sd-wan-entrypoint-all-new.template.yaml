@@ -1,6 +1,10 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (qs-1t6r10n3a)
+Description: >-
+  AWS CloudFormation template for deploying VMware SD-WAN and AWS Cloud WAN in
+  a new transit VPC.
+  **WARNING** This template creates AWS resources. You will be billed for the
+  AWS resources used if you create a stack from this template. (qs-1t6r10n3a)
 Metadata:
   LICENSE: Apache License, Version 2.0
   AWS::CloudFormation::Interface:
@@ -184,6 +188,7 @@ Resources:
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/vco-client/lambda.zip
       Environment:
         Variables:
+          # LOG_LEVEL: DEBUG
           projectName: !Ref ResourcePrefix
           VCO: !Ref VCO
           VcoCredentialsArn: !Ref VcoCredentials
@@ -375,6 +380,86 @@ Resources:
                   - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:attachment/*
                   - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:core-network/*
                   - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:global-network/*
+              # - Sid: Ec2Scoped
+              #   Effect: Allow
+              #   Action:
+              #     - ec2:AllocateAddress
+              #     - ec2:AssociateAddress
+              #     - ec2:AssociateRouteTable
+              #     - ec2:AssociateSubnetCidrBlock
+              #     - ec2:AssociateVpcCidrBlock
+              #     - ec2:AttachInternetGateway
+              #     - ec2:AttachNetworkInterface
+              #     - ec2:AuthorizeSecurityGroupEgress
+              #     - ec2:AuthorizeSecurityGroupIngress
+              #     - ec2:CreateCustomerGateway
+              #     - ec2:CreateInstanceExportTask
+              #     - ec2:CreateInternetGateway
+              #     - ec2:CreateRouteTable
+              #     - ec2:CreateSecurityGroup
+              #     - ec2:CreateSubnet
+              #     - ec2:CreateTags
+              #     - ec2:CreateVpc
+              #     - ec2:CreateVpnConnection
+              #     - ec2:CreateVpnConnectionRoute
+              #     - ec2:DeleteCustomerGateway
+              #     - ec2:DeleteInternetGateway
+              #     - ec2:DeleteNetworkInterface
+              #     - ec2:DeleteSecurityGroup
+              #     - ec2:DeleteSubnet
+              #     - ec2:DeleteTags
+              #     - ec2:DeleteVpc
+              #     - ec2:DeleteVpnConnection
+              #     - ec2:DeleteVpnConnectionRoute
+              #     - ec2:DescribeAddressesAttribute
+              #     - ec2:DescribeInstanceAttribute
+              #     - ec2:DescribeVpcAttribute
+              #     - ec2:DetachInternetGateway
+              #     - ec2:DetachNetworkInterface
+              #     - ec2:DisassociateAddress
+              #     - ec2:DisassociateRouteTable
+              #     - ec2:DisassociateSubnetCidrBlock
+              #     - ec2:DisassociateVpcCidrBlock
+              #     - ec2:ReleaseAddress
+              #     - ec2:RevokeSecurityGroupEgress
+              #     - ec2:RevokeSecurityGroupIngress
+              #     - ec2:StartInstances
+              #     - ec2:StopInstances
+              #     - ec2:TerminateInstances
+              #   Resource:
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:customer-gateway/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:elastic-ip/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:internet-gateway/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:route-table/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:security-group-rule/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*
+              #     - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpn-connection/*
+              # - Sid: Ec2Global
+              #   Effect: Allow
+              #   Action:
+              #     - ec2:DescribeAddresses
+              #     - ec2:DescribeAggregateIdFormat
+              #     - ec2:DescribeAvailabilityZones
+              #     - ec2:DescribeCustomerGateways
+              #     - ec2:DescribeInstances
+              #     - ec2:DescribeInstanceStatus
+              #     - ec2:DescribeInstanceTypes
+              #     - ec2:DescribeInternetGateways
+              #     - ec2:DescribeKeyPairs
+              #     - ec2:DescribeRegions
+              #     - ec2:DescribeRouteTables
+              #     - ec2:DescribeSecurityGroupReferences
+              #     - ec2:DescribeSecurityGroupRules
+              #     - ec2:DescribeSecurityGroups
+              #     - ec2:DescribeSubnets
+              #     - ec2:DescribeTags
+              #     - ec2:DescribeVpcs
+              #     - ec2:DescribeVpnConnections
+              #   Resource: '*'
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEC2FullAccess
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonVPCFullAccess
@@ -382,3 +467,8 @@ Outputs:
   Postdeployment:
     Description: See the deployment guide for post-deployment steps.
     Value: https://aws-quickstart.github.io/quickstart-vmware-sd-wan-aws-cloud-wan/#_postdeployment_steps
+  VcoCredentialsArn:
+    Description: >-
+      The Amazon Resource Name (ARN) of the AWS Secrets Manager secret where
+      the VCO credentials and activation key are stored.
+    Value: !Ref VcoCredentials
