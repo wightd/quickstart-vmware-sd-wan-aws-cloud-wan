@@ -390,9 +390,8 @@ Rules:
               - !ValueOf [SubnetToAttachToSegment1, VpcId]
               - !ValueOf [SubnetToAttachToSegment2, VpcId]
         AssertDescription: >-
-          Each segment subnet ID specified must be from a distinct VPCs. For
-          example, this rule will trigger if you specify subnet A and subnet B
-          if they both reside in VPC A.
+          Each segment subnet ID specified must be from a distinct VPC. Specify
+          a subnet ID in a different VPC.
 Outputs:
   Postdeployment:
     Description: See the deployment guide for post-deployment steps.
