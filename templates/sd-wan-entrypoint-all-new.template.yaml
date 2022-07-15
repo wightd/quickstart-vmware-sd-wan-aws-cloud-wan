@@ -1,0 +1,384 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: (qs-1t6r10n3a)
+Metadata:
+  LICENSE: Apache License, Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VCO Configuration
+        Parameters:
+          - VCO
+          - VcoUsername
+          - VcoPassword
+          - IgnoreCertificateValidation
+          - VcoProfileName
+          - SecondSegmentName
+          - TransitVpcCidrBlock
+      - Label:
+          default: AWS CloudWAN Configuration
+        Parameters:
+          - ResourcePrefix
+          - S3BucketName
+          - SubnetToAttachToSegment1
+          - SubnetToAttachToSegment2
+          - KeyPairName
+      - Label:
+          default: AWS Quick Start S3 bucket configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3BucketRegion
+          - QSS3KeyPrefix
+    ParameterLabels:
+      ResourcePrefix:
+        default: Resource label prefix
+      VCO:
+        default: Which VCO should this be deployed to?
+      VcoUsername:
+        default: Username
+      VcoPassword:
+        default: Password
+      IgnoreCertificateValidation:
+        default: Ignore certificate validation
+      VcoProfileName:
+        default: VCO profile name
+      SecondSegmentName:
+        default: Second VCO segment name
+      KeyPairName:
+        default: EC2 key pair name
+      S3BucketName:
+        default: S3 bucket name
+      TransitVpcCidrBlock:
+        default: Transit VPC CIDR block
+      SubnetToAttachToSegment1:
+        default: Subnet 1
+      SubnetToAttachToSegment2:
+        default: Subnet 2
+      QSS3BucketName:
+        default: Name
+      QSS3BucketRegion:
+        default: Region
+      QSS3KeyPrefix:
+        default: Key prefix
+Parameters:
+  ResourcePrefix:
+    Type: String
+    Description: Prefix used for naming all resources created by this template
+    Default: VMware-SDWAN-CloudWAN-Quickstart
+  VCO:
+    Type: String
+    Description: Orchestrator IP address or hostname (fqdn)
+  VcoUsername:
+    Type: String
+    Description: Username for Enterprise account
+  VcoPassword:
+    Type: String
+    Description: Password for Enterprise account
+    NoEcho: true
+    MinLength: 8
+    MaxLength: 32
+  IgnoreCertificateValidation:
+    Type: String
+    Description:
+      Set to true if using public IP or self signed certificate on the
+      VCO
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+  VcoProfileName:
+    Type: String
+    Description: >-
+      VCO Profile name to be used to deploy SD-WAN (NOTE: must match what
+      is already configure on VCO)
+  SecondSegmentName:
+    Type: String
+    Description: >-
+      Second VCO segment name - existing or created (NOTE: must match
+      what is already configure on VCO)
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public key name for resource deployments
+  S3BucketName:
+    Type: String
+    Description: S3 Bucket used to store json templates
+  TransitVpcCidrBlock:
+    Type: String
+    Description: CIDR block for the TransitVPC
+    Default: 10.100.0.0/16
+  SubnetToAttachToSegment1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Specify subnet to be used for segment one (Global Segment)
+  SubnetToAttachToSegment2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Specify subnet to be used for segment two
+  QSS3BucketName:
+    Type: String
+    Description: >-
+      Name of the S3 bucket for your copy of the Quick Start assets.
+      Keep the default name unless you are customizing the template.
+      Changing the name updates code references to point to a new Quick
+      Start location. This name can include numbers, lowercase letters,
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
+      See https://aws-quickstart.github.io/option1.html.
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: >-
+      The Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a
+      hyphen (-).
+    Default: aws-quickstart
+  QSS3BucketRegion:
+    Type: String
+    Description: >-
+      AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+      hosted. Keep the default Region unless you are customizing the template.
+      Changing this Region updates code references to point to a new
+      Quick Start location. When using your own bucket, specify the Region.
+      See https://aws-quickstart.github.io/option1.html.
+    Default: us-east-1
+  QSS3KeyPrefix:
+    Type: String
+    Description: >-
+      S3 key prefix that is used to simulate a directory for your copy of the
+      Quick Start assets. Keep the default prefix unless you are customizing
+      the template. Changing this prefix updates code references to point to
+      a new Quick Start location. This prefix can include numbers, lowercase
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End
+      with a forward slash.
+      See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
+      and https://aws-quickstart.github.io/option1.html.
+    AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
+    ConstraintDescription:
+      The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/).
+    Default: quickstart-vmware-sd-wan-aws-cloud-wan/
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
+Resources:
+  VcoCredentials:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub
+        - /aws/quick-start/vmware-sd-wan/${StackId}/VcoCredentials
+        - StackId: !Select [2, !Split [/, !Ref AWS::StackId]]
+      Description: The VMware SD-WAN Orchestrator credentials.
+      SecretString: !Sub >-
+        {
+          "username": "${VcoUsername}",
+          "password": "${VcoPassword}"
+        }
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref S3BucketName
+  BuildQuickStart:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !GetAtt QuickstartRole.Arn
+      Code:
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/vco-client/lambda.zip
+      Environment:
+        Variables:
+          projectName: !Ref ResourcePrefix
+          VCO: !Ref VCO
+          VcoCredentialsArn: !Ref VcoCredentials
+          profileName: !Ref VcoProfileName
+          segmentName: !Ref SecondSegmentName
+          s3BucketName: !Ref S3BucketName
+          gfCfUrl: !Sub
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/greenfield.template.yaml
+            - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+              S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+          bfCfUrl: !Sub
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/brownfield.template.yaml
+            - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+              S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+          policyJson: !Sub  |
+            {
+              "version": "2021.12",
+              "core-network-configuration": {
+                "vpn-ecmp-support": false,
+                "asn-ranges": [
+                  "64512-65534"
+                ],
+                "edge-locations": [
+                  {
+                    "location": "${AWS::Region}"
+                  }
+                ]
+              },
+              "segments": [
+                {
+                  "name": "Global",
+                  "description": "VMware SD-WAN Global segment",
+                  "require-attachment-acceptance": false,
+                  "isolate-attachments": false
+                },
+                {
+                  "name": "${SecondSegmentName}",
+                  "description": "VMware SD-WAN Second segment",
+                  "require-attachment-acceptance": false,
+                  "isolate-attachments": false
+                }
+              ],
+              "attachment-policies": [
+                {
+                  "rule-number": 1,
+                  "condition-logic": "and",
+                  "conditions": [
+                    {
+                      "type": "tag-value",
+                      "key": "segment",
+                      "operator": "contains",
+                      "value": "Global"
+                    }
+                  ],
+                  "action": {
+                    "association-method": "constant",
+                    "segment": "Global"
+                  }
+                },
+                {
+                  "rule-number": 2,
+                  "condition-logic": "and",
+                  "conditions": [
+                    {
+                      "type": "tag-value",
+                      "key": "segment",
+                      "operator": "contains",
+                      "value": "${SecondSegmentName}"
+                    }
+                  ],
+                  "action": {
+                    "association-method": "constant",
+                    "segment": "${SecondSegmentName}"
+                  }
+                }
+              ]
+            }
+          ignoreCertError: !Ref IgnoreCertificateValidation
+          keyPairName: !Ref KeyPairName
+          regionalName: !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}
+          vpcCIDR: !Ref TransitVpcCidrBlock
+          segmentOneSubnet: !Ref SubnetToAttachToSegment1
+          segmentTwoSubnet: !Ref SubnetToAttachToSegment2
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.8
+      Timeout: 900
+      TracingConfig:
+        Mode: Active
+  ExecuteQuickStart:
+    Type: Custom::ExecuteLambdaFunction
+    DependsOn:
+      - BuildQuickStart
+    Properties:
+      ServiceToken: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${BuildQuickStart}
+  QuickstartRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              Global network resources require global scope- cfn-lint bug
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: QuickStart-VMware-SDWAN-Cloud-WAN-Policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: GetVcoCredentials
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref VcoCredentials
+              - Sid: ManageCloudWatchLogs
+                Effect: Allow
+                Action:
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:GetLogEvents
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:PutMetricFilter
+                  - logs:PutRetentionPolicy
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*
+              - Sid: ManageCloudFormation
+                Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/*
+              - Sid: S3GetObject
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${QSS3BucketName}   # <- Only required for testing with taskcat
+                  - !Sub arn:${AWS::Partition}:s3:::${QSS3BucketName}/* # <- Only required for testing with taskcat
+                  - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}
+                  - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
+              - Sid: S3PutObject
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
+              - Sid: ManageNetworkManagerGlobal
+                Effect: Allow
+                Action:
+                  - networkmanager:CreateGlobalNetwork
+                  - networkmanager:DeleteGlobalNetwork
+                  - networkmanager:DescribeGlobalNetworks
+                  - networkmanager:TagResource
+                Resource: '*'
+              - Sid: ManageNetworkManagerScoped
+                Effect: Allow
+                Action:
+                  - networkmanager:CreateCoreNetwork
+                  - networkmanager:CreateConnectAttachment
+                  - networkmanager:CreateSiteToSiteVpnAttachment
+                  - networkmanager:CreateVpcAttachment
+                  - networkmanager:DeleteAttachment
+                  - networkmanager:DeleteConnection
+                  - networkmanager:DeleteCoreNetwork
+                  - networkmanager:DeleteResourcePolicy
+                  - networkmanager:DeleteCoreNetworkPolicyVersion
+                  - networkmanager:GetCoreNetwork
+                  - networkmanager:GetCoreNetworkPolicy
+                  - networkmanager:GetCoreNetworkChangeSet
+                  - networkmanager:ListAttachments
+                  - networkmanager:ListCoreNetworkPolicyVersions
+                  - networkmanager:ListCoreNetworks
+                  - networkmanager:ListTagsForResource
+                  - networkmanager:TagResource
+                Resource:
+                  - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:attachment/*
+                  - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:core-network/*
+                  - !Sub arn:${AWS::Partition}:networkmanager::${AWS::AccountId}:global-network/*
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEC2FullAccess
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonVPCFullAccess
+Outputs:
+  Postdeployment:
+    Description: See the deployment guide for post-deployment steps.
+    Value: https://aws-quickstart.github.io/quickstart-vmware-sd-wan-aws-cloud-wan/#_postdeployment_steps

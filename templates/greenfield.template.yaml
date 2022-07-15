@@ -1,0 +1,551 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: (qs-1t6n1ncpp)
+Metadata:
+  LICENSE: Apache License, Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VCO configuration
+        Parameters:
+          - VCO
+          - IgnoreCertificateValidation
+      - Label:
+          default: VPC configuration
+        Parameters:
+          - AvailabilityZone1
+          - AvailabilityZone2
+          - AvailabilityZone3
+          - VpcCidrBlockValue
+          - Az1PublicSubnetValue
+          - Az2PublicSubnetValue
+          - Az3PublicSubnetValue
+          - Az1PrivateSubnetValue
+          - Az2PrivateSubnetValue
+          - Az3PrivateSubnetValue
+      - Label:
+          default: EC2 configuration
+        Parameters:
+          - EdgeDeploymentCount
+          - VeloCloudKeyPairName
+          - SoftwareVersion
+          - EC2InstanceType
+          - ActivationKey
+          - ResourcePrefix
+    ParameterLabels:
+      AvailabilityZone1:
+        default: Availability zone 1
+      AvailabilityZone2:
+        default: Availability zone 2
+      AvailabilityZone3:
+        default: Availability zone 3
+      SoftwareVersion:
+        default: Software version
+      EC2InstanceType:
+        default: EC2 instance type
+      ResourcePrefix:
+        default: Resource prefix
+      ActivationKey:
+        default: Edge activation key
+      IgnoreCertificateValidation:
+        default: Ignore certificate validation
+      VCO:
+        default: Which VCO should this be deployed to?
+      VeloCloudKeyPairName:
+        default: EC2 key pair name
+      EdgeDeploymentCount:
+        default: Edge deployment count
+      VpcCidrBlockValue:
+        default: VPC CIDR block value
+      Az1PublicSubnetValue:
+        default: Availability zone 1 public subnet
+      Az1PrivateSubnetValue:
+        default: Availability zone 1 private subnet
+      Az2PublicSubnetValue:
+        default: Availability zone 2 public subnet
+      Az2PrivateSubnetValue:
+        default: Availability zone 2 private subnet
+      Az3PublicSubnetValue:
+        default: Availability zone 3 public subnet
+      Az3PrivateSubnetValue:
+        default: Availability zone 3 private subnet
+Parameters:
+  SoftwareVersion:
+    Type: String
+    Description: VeloCloud Virtual Edge Software Version
+    AllowedValues:
+      - 322
+      - 331
+      - 431
+    Default: 431
+    ConstraintDescription: 'Must be one of the following: 322, 331, or 431'
+  EC2InstanceType:
+    Type: String
+    Description: Throughput and number of NICs dictate instance type
+    AllowedValues:
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+    Default: c5.large
+  ResourcePrefix:
+    Type: String
+    Description: Prefix used for naming all resources created by this template
+    Default: velocloud
+  AvailabilityZone1:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Availability zone to deploy in
+  AvailabilityZone2:
+    Type: String
+    Description: Availability zone to deploy in
+    Default: ''
+  AvailabilityZone3:
+    Type: String
+    Description: Availability zone to deploy in
+    Default: ''
+  ActivationKey:
+    Type: String
+    Description: Edge Activation Key
+    AllowedPattern: ^[A-Z0-9-]+$
+  IgnoreCertificateValidation:
+    Type: String
+    Description: Set to true if using private or self signed certificate on the VCO
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+  VCO:
+    Type: String
+    Description: Orchestrator IP address or hostname (fqdn)
+  VpcCidrBlockValue:
+    Type: String
+    Description: CIDR block for the VPC
+    Default: 10.0.0.0/16
+  Az1PublicSubnetValue:
+    Type: String
+    Description: CIDR block for the WAN side of the Edge
+    Default: 10.0.0.0/24
+  Az1PrivateSubnetValue:
+    Type: String
+    Description: CIDR block for the LAN side of the Edge
+    Default: 10.0.1.0/24
+  Az2PublicSubnetValue:
+    Type: String
+    Description: CIDR block for the WAN side of the Edge
+    Default: 10.0.2.0/24
+  Az2PrivateSubnetValue:
+    Type: String
+    Description: CIDR block for the LAN side of the Edge
+    Default: 10.0.3.0/24
+  Az3PublicSubnetValue:
+    Type: String
+    Description: CIDR block for the WAN side of the Edge
+    Default: 10.0.4.0/24
+  Az3PrivateSubnetValue:
+    Type: String
+    Description: CIDR block for the LAN side of the Edge
+    Default: 10.0.5.0/24
+  VeloCloudKeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public/Private Key Name of Edge to be deployed
+  EdgeDeploymentCount:
+    Type: String
+    Description: Number of Edges to be deployed
+    AllowedValues:
+      - 1
+      - 2
+      - 3
+    ConstraintDescription: Minimum one, maximum three
+    Default: 2
+Mappings:
+  RegionMap:
+    ap-east-1:
+      '331': ami-08275d79
+      '431': ami-0859bda20c445194c
+    ap-northeast-1:
+      '322': ami-05eb836595f666ab3
+      '331': ami-02028fdfda2bedef3
+      '431': ami-05f8ba84f8686021a
+    ap-northeast-2:
+      '322': ami-0f7514d14209b90ff
+      '331': ami-001c1e312fec38b26
+      '431': ami-004726b73d452ccb6
+    ap-south-1:
+      '322': ami-0c74ea9d8c66c1a87
+      '331': ami-08df28503c779c65b
+      '431': ami-09326df5874458c3b
+    ap-southeast-1:
+      '322': ami-0d0e6c10cf0ffd3a9
+      '331': ami-00b0ac7201061dce6
+      '431': ami-0c7c7cdb1af792c19
+    ap-southeast-2:
+      '322': ami-09672eaa998504af3
+      '331': ami-0b7196fd587231352
+      '431': ami-05258b9a8201bff4d
+    ca-central-1:
+      '322': ami-0cb42e3a9a6adaf09
+      '331': ami-03a3ed427dd6af221
+      '431': ami-027a0254629bb2504
+    eu-central-1:
+      '322': ami-0d2f8031303625653
+      '331': ami-0e3ef4a959a447466
+      '431': ami-01f51d344ac508479
+    eu-north-1:
+      '322': ami-1aed6564
+      '331': ami-ba9c16c4
+      '431': ami-0814fa9946580e4ad
+    eu-west-1:
+      '322': ami-0967d4240a3fb5742
+      '331': ami-0f5a1ddf49df24d29
+      '431': ami-0977bf0f1ccaeb52f
+    eu-west-2:
+      '322': ami-0e9836eb5505034b6
+      '331': ami-0910c04a99eda46f3
+      '431': ami-0119faf2bb52c8b98
+    eu-west-3:
+      '322': ami-055c7e693f0504309
+      '331': ami-00bb1d7d48dd45aac
+      '431': ami-0371f223377a46199
+    sa-east-1:
+      '322': ami-092fa003ace20ca2b
+      '331': ami-03476bb22664d682d
+      '431': ami-033519f92f70df801
+    us-east-1:
+      '322': ami-02d53ee6e90715a83
+      '331': ami-0a9373a4b23e149b7
+      '431': ami-00adba00f6e2d6c59
+    us-east-2:
+      '322': ami-0667712c0cc7ccbd6
+      '331': ami-00009cd364607db91
+      '431': ami-0d347afd2c43a4355
+    us-gov-east-1:
+      '322': ami-9b31d0ea
+      '331': ami-b87191c9
+    us-gov-west-1:
+      '322': ami-3b11605a
+      '331': ami-f3d08492
+    us-west-1:
+      '322': ami-056b3e0e020d5733c
+      '331': ami-0eae7918e6c5e03e3
+      '431': ami-0e5c616175a857250
+    us-west-2:
+      '322': ami-04d3e79314781094f
+      '331': ami-0e2374b672d5149c3
+      '431': ami-05159b4727b41a1f7
+Conditions:
+  CreateAZ2: !Equals [!Ref EdgeDeploymentCount, 2]
+  CreateAZ3: !Equals [!Ref EdgeDeploymentCount, 3]
+Resources:
+  VelocloudVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidrBlockValue
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-VPC
+  Az1PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref Az1PublicSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone1
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ1-Public-SN
+  Az1PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref Az1PrivateSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone1
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ1-Private-SN
+  Az2PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateAZ2
+    Properties:
+      CidrBlock: !Ref Az2PublicSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone2
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ2-Public-SN
+  Az2PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateAZ2
+    Properties:
+      CidrBlock: !Ref Az2PrivateSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone2
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ2-Private-SN
+  Az23PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateAZ3
+    Properties:
+      CidrBlock: !Ref Az2PublicSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone2
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ2-Public-SN
+  Az23PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateAZ3
+    Properties:
+      CidrBlock: !Ref Az2PrivateSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone2
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ2-Private-SN
+  Az3PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateAZ3
+    Properties:
+      CidrBlock: !Ref Az3PublicSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone3
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ3-Public-SN
+  Az3PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateAZ3
+    Properties:
+      CidrBlock: !Ref Az3PrivateSubnetValue
+      AvailabilityZone: !Ref AvailabilityZone3
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-AZ3-Private-SN
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-IGW
+  Az1PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-Az1-Public-RT
+  Az2PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Condition: CreateAZ2
+    Properties:
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-Az2-Public-RT
+  Az23PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Condition: CreateAZ3
+    Properties:
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-Az2-Public-RT
+  Az3PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Condition: CreateAZ3
+    Properties:
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-Az3-Public-RT
+  PublicIpAddress:
+    Type: AWS::EC2::EIP
+    DependsOn:
+      - VpcGatewayAttachment
+    Properties:
+      Domain: vpc
+  VceInterfaceGe1:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: Management Interface
+      SourceDestCheck: false
+      SubnetId: !Ref Az1PublicSubnet
+      GroupSet:
+        - !Ref VelocloudWANSecurityGroup
+  VceInterfaceGe2:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: WAN Interface
+      SourceDestCheck: false
+      SubnetId: !Ref Az1PublicSubnet
+      GroupSet:
+        - !Ref VelocloudWANSecurityGroup
+  VceInterfaceGe3:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: LAN Interface
+      SourceDestCheck: false
+      SubnetId: !Ref Az1PrivateSubnet
+      GroupSet:
+        - !Ref VelocloudLANSecurityGroup
+  VeloCloudEdge:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - PublicIpAddress
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref AWS::Region, !Ref SoftwareVersion]
+      InstanceType: !Ref EC2InstanceType
+      KeyName: !Ref VeloCloudKeyPairName
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-vEdge
+      UserData:
+        Fn::Base64: !Sub |
+          #cloud-config
+          velocloud:
+            vce:
+              vco: ${VCO}
+              activation_code: ${ActivationKey}
+              vco_ignore_cert_errors: ${IgnoreCertificateValidation}
+      NetworkInterfaces:
+        - DeleteOnTermination: false
+          NetworkInterfaceId: !Ref VceInterfaceGe1
+          DeviceIndex: 0
+        - DeleteOnTermination: false
+          NetworkInterfaceId: !Ref VceInterfaceGe2
+          DeviceIndex: 1
+        - DeleteOnTermination: false
+          NetworkInterfaceId: !Ref VceInterfaceGe3
+          DeviceIndex: 2
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VelocloudVPC
+      InternetGatewayId: !Ref InternetGateway
+  Az1PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref Az1PublicRouteTable
+      SubnetId: !Ref Az1PublicSubnet
+  Az2PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateAZ2
+    Properties:
+      RouteTableId: !Ref Az2PublicRouteTable
+      SubnetId: !Ref Az2PublicSubnet
+  Az23PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateAZ3
+    Properties:
+      RouteTableId: !Ref Az23PublicRouteTable
+      SubnetId: !Ref Az23PublicSubnet
+  Az3PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateAZ3
+    Properties:
+      RouteTableId: !Ref Az3PublicRouteTable
+      SubnetId: !Ref Az3PublicSubnet
+  Az1PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - VpcGatewayAttachment
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref Az1PublicRouteTable
+      GatewayId: !Ref InternetGateway
+  Az2PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Condition: CreateAZ2
+    DependsOn:
+      - VpcGatewayAttachment
+      - Az1PublicRouteTable
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref Az2PublicRouteTable
+      GatewayId: !Ref InternetGateway
+  Az23PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Condition: CreateAZ3
+    DependsOn:
+      - VpcGatewayAttachment
+      - Az1PublicRouteTable
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref Az23PublicRouteTable
+      GatewayId: !Ref InternetGateway
+  Az3PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Condition: CreateAZ3
+    DependsOn:
+      - VpcGatewayAttachment
+      - Az1PublicRouteTable
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref Az3PublicRouteTable
+      GatewayId: !Ref InternetGateway
+  ElasticIpAssociation:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn:
+      - VeloCloudEdge
+    Properties:
+      AllocationId: !GetAtt PublicIpAddress.AllocationId
+      NetworkInterfaceId: !Ref VceInterfaceGe2
+  VelocloudWANSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WAN Facing Security Group
+      VpcId: !Ref VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-WAN-SG
+  AllowSNMP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudWANSecurityGroup
+      IpProtocol: udp
+      FromPort: 161
+      ToPort: 161
+      CidrIp: 0.0.0.0/0
+  AllowSSH:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudWANSecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+  AllowVCMP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudWANSecurityGroup
+      IpProtocol: udp
+      FromPort: 2426
+      ToPort: 2426
+      CidrIp: 0.0.0.0/0
+  VelocloudLANSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: >-
+        LAN Facing Security Group - WARNING: Default is Allow Only
+        ICMP, adjust accordingly for other traffic
+      VpcId:
+        Ref: VelocloudVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourcePrefix}-LAN-SG
+  AllowLANTraffic:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: VelocloudLANSecurityGroup
+      IpProtocol: icmp
+      FromPort: -1
+      ToPort: -1
+      CidrIp: 0.0.0.0/0

@@ -2,11 +2,17 @@
 taskcat_outputs/
 .taskcat/
 .taskcat_overrides.yml
+functions/packages/
 
 # Docs
 docs/
 index.html
 prod_example.html
+
+# Python
+.python-version
+venv/
+env/
 
 # macOS
 .DS_Store
