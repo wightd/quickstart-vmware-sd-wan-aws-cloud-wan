@@ -263,7 +263,7 @@ Resources:
             }
           ignoreCertError: !Ref IgnoreCertificateValidation
           keyPairName: !Ref KeyPairName
-          regionalName: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}
+          regionalName: !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}
           vpcCIDR: !Ref TransitVpcCidrBlock
           segmentOneSubnet: !Ref SubnetToAttachToSegment1
           segmentTwoSubnet: !Ref SubnetToAttachToSegment2
