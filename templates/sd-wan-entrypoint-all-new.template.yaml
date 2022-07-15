@@ -382,6 +382,17 @@ Resources:
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEC2FullAccess
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonVPCFullAccess
+Rules:
+  SegmentSubnetsInSameVpc:
+    Assertions:
+      - Assert: !Not
+          - !Equals
+              - !ValueOf [SubnetToAttachToSegment1, VpcId]
+              - !ValueOf [SubnetToAttachToSegment2, VpcId]
+        AssertDescription: >-
+          Each segment subnet ID specified must be from a distinct VPCs. For
+          example, this rule will trigger if you specify subnet A and subnet B
+          if they both reside in VPC A.
 Outputs:
   Postdeployment:
     Description: See the deployment guide for post-deployment steps.
