@@ -1,6 +1,10 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: (qs-1t6r10n3a)
+Description: >-
+  AWS CloudFormation template for deploying VMware SD-WAN and AWS Cloud WAN in
+  a new transit VPC.
+  **WARNING** This template creates AWS resources. You will be billed for the
+  AWS resources used if you create a stack from this template. (qs-1t6r10n3a)
 Metadata:
   LICENSE: Apache License, Version 2.0
   AWS::CloudFormation::Interface:
@@ -382,3 +386,8 @@ Outputs:
   Postdeployment:
     Description: See the deployment guide for post-deployment steps.
     Value: https://aws-quickstart.github.io/quickstart-vmware-sd-wan-aws-cloud-wan/#_postdeployment_steps
+  VcoCredentialsArn:
+    Description: >-
+      The Amazon Resource Name (ARN) of the AWS Secrets Manager secret where
+      the VCO credentials and activation key are stored.
+    Value: !Ref VcoCredentials
