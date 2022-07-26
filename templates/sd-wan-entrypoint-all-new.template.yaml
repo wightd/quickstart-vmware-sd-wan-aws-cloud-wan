@@ -10,7 +10,7 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: VCO Configuration
+          default: VCO configuration
         Parameters:
           - VCO
           - VcoUsername
@@ -20,7 +20,7 @@ Metadata:
           - SecondSegmentName
           - TransitVpcCidrBlock
       - Label:
-          default: AWS CloudWAN Configuration
+          default: AWS Cloud WAN configuration
         Parameters:
           - ResourcePrefix
           - S3BucketName
@@ -37,9 +37,9 @@ Metadata:
       ResourcePrefix:
         default: Resource label prefix
       VCO:
-        default: Which VCO should this be deployed to?
+        default: VCO
       VcoUsername:
-        default: Username
+        default: User name
       VcoPassword:
         default: Password
       IgnoreCertificateValidation:
@@ -67,14 +67,14 @@ Metadata:
 Parameters:
   ResourcePrefix:
     Type: String
-    Description: Prefix used for naming all resources created by this template
+    Description: Prefix used for naming all resources created by this template.
     Default: VMware-SDWAN-CloudWAN-Quickstart
   VCO:
     Type: String
-    Description: Orchestrator IP address or hostname (fqdn)
+    Description: VMware Orchestrator (VCO) IP address or fully qualified domain name (FQDN).
   VcoUsername:
     Type: String
-    Description: Username for Enterprise account
+    Description: User name for Enterprise account
   VcoPassword:
     Type: String
     Description: Password for Enterprise account
@@ -84,8 +84,7 @@ Parameters:
   IgnoreCertificateValidation:
     Type: String
     Description:
-      Set to true if using public IP or self signed certificate on the
-      VCO
+      Choose true if using a public IP address or a self-signed certificate on VCO.
     AllowedValues:
       - 'true'
       - 'false'
@@ -93,29 +92,27 @@ Parameters:
   VcoProfileName:
     Type: String
     Description: >-
-      VCO Profile name to be used to deploy SD-WAN (NOTE: must match what
-      is already configure on VCO)
+      VCO profile name to be used to deploy SD-WAN. This must match what is already configured on VCO.
   SecondSegmentName:
     Type: String
     Description: >-
-      Second VCO segment name - existing or created (NOTE: must match
-      what is already configure on VCO)
+      Second existing or created VCO segment name. This must match what is already configured on VCO.
   KeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Public key name for resource deployments
+    Description: Public key name for resource deployments.
   S3BucketName:
     Type: String
-    Description: S3 Bucket used to store json templates
+    Description: S3 bucket used to store JSON templates.
   TransitVpcCidrBlock:
     Type: String
-    Description: CIDR block for the TransitVPC
+    Description: CIDR block for the transit VPC.
     Default: 10.100.0.0/16
   SubnetToAttachToSegment1:
     Type: AWS::EC2::Subnet::Id
-    Description: Specify subnet to be used for segment one (Global Segment)
+    Description: Subnet to be used for the first (global) segment.
   SubnetToAttachToSegment2:
     Type: AWS::EC2::Subnet::Id
-    Description: Specify subnet to be used for segment two
+    Description: Subnet to be used for the second segment.
   QSS3BucketName:
     Type: String
     Description: >-
