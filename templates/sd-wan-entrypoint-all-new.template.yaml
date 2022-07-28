@@ -109,7 +109,7 @@ Parameters:
     Default: 10.100.0.0/16
   SubnetToAttachToSegment1:
     Type: AWS::EC2::Subnet::Id
-    Description: Subnet to be used for the first (global) segment.
+    Description: Subnet to be used for the first segment (Global).
   SubnetToAttachToSegment2:
     Type: AWS::EC2::Subnet::Id
     Description: Subnet to be used for the second segment.
