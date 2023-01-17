@@ -1157,7 +1157,7 @@ def aws_create_core_network(vco_dict):
     # Checking CORE-NETWORK State
     coreComplete = False
     i = 0
-    while i < 30:  # Set for five minute timeout
+    while i < 60:  # Set for ten minute timeout
         logging.info("Waiting for core-network to become available...")
         api_response = client.get_core_network(CoreNetworkId=vco_dict["CoreNetworkId"])
         if api_response["CoreNetwork"]["State"] == "AVAILABLE":

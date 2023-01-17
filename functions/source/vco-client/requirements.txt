@@ -1,6 +1,6 @@
 boto3==1.24.9
 botocore==1.27.9
-certifi==2022.5.18.1
+certifi==2022.12.7
 cfnresponse==1.1.2
 charset-normalizer==2.0.12
 idna==3.3
