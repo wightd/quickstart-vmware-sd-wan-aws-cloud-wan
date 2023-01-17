@@ -288,7 +288,6 @@ def create_enterprise_service(t_details):
              "enterpriseId": t_details.get("enterprise_id"),
              "name": t_details.get("name"),
              "type": t_details.get("service_type"),
-             "edgeId": t_details.get("edgeId"),
              "data": {
                  "typeAlias": "genericIKEv2Router",
                  "tunnelMode": "ACTIVE_ACTIVE",
@@ -307,7 +306,7 @@ def create_enterprise_service(t_details):
                      "IKEPROP": {
                          "DHGroup": 14,
                          "PFS": 0,
-                         "authenticationAlgorithm": "SHA_256",
+                         "authenticationAlgorithm": "Any",
                          "authenticationMethod": "PSK",
                          "dpdTimeoutSeconds": 20,
                          "dpdType": "Disable",
@@ -322,7 +321,7 @@ def create_enterprise_service(t_details):
                          "protocolVersion": 2
                      },
                      "IPSECPROP": {
-                         "authenticationAlgorithm": "SHA_256",
+                         "authenticationAlgorithm": "SHA_512",
                          "encryptionAlgorithm": "AES_256_CBC",
                          "ipsecTunnelType": "ROUTE",
                          "lifeTimeSeconds": 28800,
@@ -338,7 +337,7 @@ def create_enterprise_service(t_details):
                      "IKEPROP": {
                          "DHGroup": 14,
                          "PFS": 0,
-                         "authenticationAlgorithm": "SHA_256",
+                         "authenticationAlgorithm": "Any",
                          "authenticationMethod": "PSK",
                          "dpdTimeoutSeconds": 20,
                          "dpdType": "Disable",
@@ -353,7 +352,7 @@ def create_enterprise_service(t_details):
                          "protocolVersion": 2
                      },
                      "IPSECPROP": {
-                         "authenticationAlgorithm": "SHA_256",
+                         "authenticationAlgorithm": "SHA_512",
                          "encryptionAlgorithm": "AES_256_CBC",
                          "ipsecTunnelType": "ROUTE",
                          "lifeTimeSeconds": 28800,
