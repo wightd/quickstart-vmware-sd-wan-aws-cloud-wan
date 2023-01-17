@@ -554,7 +554,7 @@ def update_edge_device_settings_for_edge_direct(res, vco_dict, edge=0):
                                         "sourceInterface": "",
                                         "localIP": get_ip_address(
                                             vco_dict["edges"][edge]["Vpns"][0]["PrimaryTunnelInsideCidr"], 2),
-                                        "maxHop": "1"
+                                        "maxHop": "2"
                                     }
                                 },
                                 "backupTunnel": {
@@ -584,7 +584,7 @@ def update_edge_device_settings_for_edge_direct(res, vco_dict, edge=0):
                                         "outboundFilter": {
                                             "ids": []
                                         },
-                                        "maxHop": "1",
+                                        "maxHop": "2",
                                         "sourceInterface": "",
                                         "localIP": get_ip_address(
                                             vco_dict["edges"][edge]["Vpns"][0]["SecondaryTunnelInsideCidr"], 2),
@@ -689,7 +689,7 @@ def update_edge_device_settings_for_edge_direct(res, vco_dict, edge=0):
                                         "sourceInterface": "",
                                         "localIP": get_ip_address(
                                             vco_dict["edges"][edge]["Vpns"][1]["PrimaryTunnelInsideCidr"], 2),
-                                        "maxHop": "1"
+                                        "maxHop": "2"
                                     }
                                 },
                                 "backupTunnel": {
@@ -722,7 +722,7 @@ def update_edge_device_settings_for_edge_direct(res, vco_dict, edge=0):
                                         "sourceInterface": "",
                                         "localIP": get_ip_address(
                                             vco_dict["edges"][edge]["Vpns"][1]["SecondaryTunnelInsideCidr"], 2),
-                                        "maxHop": "1"
+                                        "maxHop": "2"
                                     }
                                 }
                             }
